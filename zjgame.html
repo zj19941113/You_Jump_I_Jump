@@ -1,0 +1,931 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin: 0px;
+            /* background-color: #8797a4; */
+            overflow: hidden;
+        }
+        #info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+    </style>
+</head>
+<body>
+
+<script src="build/three.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/WebGL.js"></script>
+
+<script>
+
+    if ( WEBGL.isWebGLAvailable() === false ) {
+    document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+    }
+    
+    var camera, controls, scene, renderer;
+
+    init();
+    animate();
+
+    function init() {
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0x8797a4 );
+		// scene.fog = new THREE.FogExp2( 0x8797a4, 0.002 );  
+
+        renderer = new THREE.WebGLRenderer({ antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        // camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 1000 );
+        camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -1000, 2000 );
+        camera.position.set( 200 , 200 , 200 );
+        camera.lookAt({ x : 0,y : 0,z : 0});
+
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+        //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+
+        controls.screenSpacePanning = false;
+
+        controls.minDistance = 100;
+        controls.maxDistance = 500;
+
+        controls.maxPolarAngle = Math.PI / 2;
+
+        light = new THREE.AmbientLight( 0xFFFFFF,0.4 );
+        scene.add( light );
+
+        light2 = new THREE.DirectionalLight(0xFFFFFF,1);
+        light2.position.set(3,4,2);
+        scene.add(light2);
+
+        ground = creatGround(0,0,0x8797a4)
+
+        // color:bai lv #ffffff #649569
+        // color:bai hui #ffffff #979797
+        // color:qianhui shenhui #afafaf #686868
+        // color:wechatlv #64a934
+        // meshTop.position.set(x,y+50,z);
+        // meshLeft.position.set(x,y+25,z+50);
+        // meshRight.position.set(x+50,y+25,z);
+        // material2.transparent = true;
+        
+        // test
+        player = creatcubeplayer(0,0);
+        cube07 = creatcube07(0,0);
+
+        // 玩家
+        // player = creatcubeplayer(-0,0);
+
+        //条纹box
+        cube10 = creatcube10(-450,0);
+        cube11 = creatcube11(-150,0);
+        cube12 = creatcube12(-300,0);
+        cube13 = creatcube13(-300,-150);
+        cube14 = creatcube14(-450,-150);
+        cube15 = creatcube15(-600,0);
+        cube16 = creatcube16(-750,0);
+        cube17 = creatcube17(-750,-150);
+        cube18 = creatcube18(-150,-150);
+
+        //异形box
+        cube21 = creatcube21(0,-450);
+        cube22 = creatcube22(-150,-450);
+        cube23 = creatcube23(-300,-450);
+        cube24 = creatcube24(-450,-450);
+        cube25 = creatcube25(-600,-450);
+        cube26 = creatcube26(-750,-450);
+        cube27 = creatcube27(-900,-450);
+        
+        //贴图box
+        cube01 = creatcube01(0,-300);
+        cube02 = creatcube02(-150,-300);
+        cube03 = creatcube03(-300,-300);
+        cube04 = creatcube04(-450,-300);
+        cube05 = creatcube05(-600,-300);
+        cube06 = creatcube06(-750,-300);
+        cube07 = creatcube07(-900,-300);
+        
+        //柱状体
+        desk = creatdesk(0,-600);
+        desk2 = creatdesk2(-150,-600);
+        cylinder = creatcylinder(-300,-600);
+        cylinder2 = creatcylinder2(-450,-600);
+        cup = creatcup(-600,-600);
+
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+
+    function creatcubeplayer(x,z) {
+        var geometry = new THREE.PlaneGeometry( 22,70 );
+        var texture = new THREE.TextureLoader().load( "source/i.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        material.transparent = true;
+        player = new THREE.Mesh( geometry,material );
+        player.rotation.y =  Math.PI / 4;
+        player.position.set(x+5,85,z+5);
+        Shadow =  makeShadow_player(x,z);
+        group = new THREE.Object3D();
+        group.add(player,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube10(x,z) {
+        group = canvasTwoFace_5stripe(x,z,0xffffff,"#ffffff","#979797");
+        return group;     
+    }
+
+    function creatcube11(x,z) {
+        group = canvasTwoFace_5stripe(x,z,0x686868,"#686868","#afafaf");
+        return group;     
+    }
+
+    function creatcube12(x,z) {
+        group = canvasTwoFace_3stripe(x,z,0x686868,"#686868","#afafaf");
+        return group;     
+    }
+
+    function creatcube13(x,z) {
+        group = canvasTwoFace_3stripe(x,z,0x649569,"#649569","#ffffff");
+        return group;     
+    }
+
+    function creatcube14(x,z) {
+        group = canvasTwoFace_5stripe(x,z,0x649569,"#649569","#ffffff");
+        return group;     
+    }
+
+    function creatcube15(x,z) {
+        group = canvasTwoFace_circle(x,z,0x686868,"#686868","#afafaf");
+        return group;     
+    }
+
+    function creatcube16(x,z) {
+        group = canvasTwoFace_circle(x,z,0xffffff,"#ffffff","#979797");
+        return group;     
+    }
+
+    function creatcube17(x,z) {
+        group = canvasTwoFace_circle(x,z,0x649569,"#649569","#ffffff");
+        return group;     
+    }
+
+    function creatcube18(x,z) {
+        group = canvasTwoFace_3stripe(x,z,0xffffff,"#ffffff","#979797");
+        return group;     
+    }
+
+    function creatcube01(x,z) {
+        var canvas = document.createElement('canvas');
+        canvas.width=100;
+        canvas.height=50;
+        var ctx = canvas.getContext('2d');
+        ctx.rect(0,0,100,50);
+        ctx.fillStyle="#e86014";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(40,25,18,0,2*Math.PI);
+        ctx.fillStyle="#ffffff";
+        ctx.fill();           
+        ctx.beginPath();
+        ctx.arc(45,20,6,0,2*Math.PI);
+        ctx.fillStyle="#e86014";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(65,10,6,0,2*Math.PI);
+        ctx.fillStyle="#ffffff";
+        ctx.fill();
+        var texture = new THREE.Texture(canvas);       
+        group = canvasOneFace(x,z,texture,0xe86014);
+        return group;
+    }
+
+    function creatcube02(x,z) {
+        group = allPicThreeFace(x, z, "source/express.png", 50)
+        return group;
+    }
+
+    function creatcube03(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0xf64850} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometryRight = new THREE.PlaneGeometry( 32,32 );
+        var textureRight = new THREE.TextureLoader().load( "source/money.png" );
+        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+50.01,25,z);
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(meshRight,mesh,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube04(x,z) {
+        group = allPicThreeFace(x, z, "source/dict.png", 50)
+        return group;
+    }
+
+    function creatcube05(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var texture = new THREE.TextureLoader().load( "source/bag.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube06(x,z) {
+        group = allPicThreeFace(x, z, "source/tit.png", 50)
+        return group; 
+    }
+
+    function creatcube21(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0x64a934} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometryRight = new THREE.PlaneGeometry( 100,50 );
+        var textureRight = new THREE.TextureLoader().load( "source/green_face.png" );
+        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
+        materialRight.transparent = true;
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+50.01,25,z);
+
+        var geometry2 = new THREE.CubeGeometry( 40, 30, 15);
+        var material2 = new THREE.MeshLambertMaterial( { color:0x64a934} );
+        var leg1 = new THREE.Mesh( geometry2,material2);
+        leg1.position.set(x+22,31,z+58);
+        leg1.rotation.x = - Math.PI / 4;
+        var leg2 = leg1.clone();
+        leg2.position.set(x+22,31,z+58-112);
+        leg2.rotation.x =  Math.PI / 4;
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,meshRight,leg1,leg2,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube22(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0xd4c836} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+
+        var geometry1 = new THREE.CylinderGeometry(20, 20, 10, 30, 3, true);
+        var material1 = new THREE.MeshLambertMaterial({ color:0xd4c836});
+        mesh1 = new THREE.Mesh(geometry1,material1);
+        mesh1.position.set(x,25,z+55);
+        mesh1.rotation.x =  -Math.PI / 2;
+        var geometry2 = new THREE.PlaneGeometry( 20, 20 );
+        var texture = new THREE.TextureLoader().load( "source/emotion.png" );
+        var material2 = new THREE.MeshBasicMaterial( {map:texture} );
+        material2.transparent = true;
+        var circle1 = new THREE.Mesh( geometry2, material2 );
+        circle1.position.set(x,25,z+55.01);
+
+        mesh2 = mesh1.clone();
+        mesh2.position.set(x+55,25,z);
+        mesh2.rotation.z =  Math.PI / 2;
+        circle2 = circle1.clone();
+        circle2.position.set(x+55.01,25,z);
+        circle2.rotation.y =  Math.PI / 2;
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,mesh1,mesh2,circle1,circle2,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube23(x,z) {
+        var geometryTop = new THREE.CubeGeometry( 100, 50, 100);
+        var materialTop = new THREE.MeshLambertMaterial( { color:0xffffff} );
+        meshTop = new THREE.Mesh( geometryTop,materialTop);
+        meshTop.position.set(x,25,z);
+        var geometryRight = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+        var textureRight = new THREE.TextureLoader().load( "source/clock.png" );
+        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+50.01, 25,z);
+ 
+        var now = new Date();
+        var h = now.getHours();
+        var m = now.getMinutes();
+        function checkTime(i){
+            if (i<10){
+                i="0" + i;
+            }
+            str = i.toString();
+        return str;
+        }
+        var hStr = checkTime(h);
+        var hArr = hStr.split("");
+        var mStr =checkTime(m);
+        var mArr = mStr.split(""); 
+        pic1 = creatTime(hArr[0], 1, x, z);
+        pic2 = creatTime(hArr[1], 2, x, z);
+        pic3 = creatTime(mArr[0], 3, x, z);
+        pic4 = creatTime(mArr[1], 4, x, z);
+        function creatTime(h, n, x, z){
+            var scr = "source/" + h + ".png";
+            if (n == 1){
+                return loadImg(scr, 30, x, z);
+            }
+            if (n == 2){
+                return loadImg(scr, 12, x, z);
+            }
+            if (n == 3){
+                return loadImg(scr, -6, x, z);
+            }
+            if (n == 4){
+                return loadImg(scr, -24, x, z);
+            }
+        }
+        function loadImg(scr, d, x, z){
+            var geometry = new THREE.PlaneGeometry( 26, 26 );
+            var texture = new THREE.TextureLoader().load( scr );
+            var material = new THREE.MeshLambertMaterial({map:texture});
+            material.transparent = true;
+            mesh = new THREE.Mesh( geometry, material);
+            mesh.rotation.y =  Math.PI / 2;
+            mesh.position.set(x+50.02, 25, z+d);
+            return mesh;
+	    }
+
+        var geometry1 = new THREE.CylinderGeometry(20, 20, 10, 100, 3, true);
+        var texture1 = new THREE.TextureLoader().load( "source/stripe.png" );
+        texture1.wrapS = THREE.RepeatWrapping;
+        texture1.wrapT = THREE.RepeatWrapping;
+        texture1.repeat.set( 2, 2 );
+        var material1 = new THREE.MeshLambertMaterial({map:texture1});
+        mesh1 = new THREE.Mesh(geometry1,material1);
+        mesh1.position.set(x,25,z+55);
+        mesh1.rotation.x =  -Math.PI / 2;
+        var geometry2 = new THREE.CircleGeometry( 20, 30 );
+        var texture2 = new THREE.TextureLoader().load( "source/stripe.png" );
+        texture2.wrapS = THREE.RepeatWrapping;
+        texture2.wrapT = THREE.RepeatWrapping;
+        var material2 = new THREE.MeshBasicMaterial( {map:texture2} );
+        material2.transparent = true;
+        var circle1 = new THREE.Mesh( geometry2, material2 );
+        circle1.position.set(x,25,z+60);
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(meshTop,meshRight,pic1,pic2,pic3,pic4,mesh1,circle1,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube24(x,z) {
+        var geometry1 = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
+        var material1 = new THREE.MeshLambertMaterial({ color:0x686868});
+        mesh1 = new THREE.Mesh(geometry1,material1);
+        mesh1.position.set(x,45,z);
+        var geometry = new THREE.CircleGeometry( 40, 30 );
+        var texture = new THREE.TextureLoader().load( "source/record.png" );
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        texture.needsUpdate = true;
+        var circle = new THREE.Mesh( geometry, material );
+        circle.position.set(x,46,z);
+        circle.rotation.x =  -Math.PI / 2;
+        meshBelow = allPicThreeFace(x, z, "source/sing.png", 44)
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(meshBelow,mesh1,circle,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube25(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometryRight = new THREE.PlaneGeometry( 66,33 );
+        var textureRight = new THREE.TextureLoader().load( "source/white_face.png" );
+        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
+        materialRight.transparent = true;
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+50.01,20,z);
+
+        var geometry2 = new THREE.CubeGeometry( 40, 30, 15);
+        var material2 = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
+        var leg1 = new THREE.Mesh( geometry2,material2);
+        leg1.position.set(x+22,30,z+58);
+        leg1.rotation.x = - Math.PI / 4;
+        var leg2 = leg1.clone();
+        leg2.position.set(x+22,31,z+58-112);
+        leg2.rotation.x =  Math.PI / 4;
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,meshRight,leg1,leg2,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube26(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 40, 100);
+        var material = new THREE.MeshLambertMaterial({color:0x9175cf});
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,20,z);
+
+        var texture = new THREE.TextureLoader().load( "source/gift.png" );
+        var geometryTop = new THREE.PlaneGeometry( 110, 110, 1, 1 );
+        geometryTop.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0.25);//图片左下角
+        var t2 = new THREE.Vector2(1,0.25);//图片右下角
+        var t3 = new THREE.Vector2(1,1);//图片右上角
+        var t0 = new THREE.Vector2(0,1);//图片左上角
+        geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var materialTop = new THREE.MeshLambertMaterial({map:texture});
+        meshTop = new THREE.Mesh( geometryTop,materialTop );
+        meshTop.rotation.x =  -Math.PI / 2;
+        meshTop.position.set(x,50,z);
+        var geometryLeft = new THREE.PlaneGeometry( 110, 16, 1, 1 );
+        geometryLeft.faceVertexUvs[0] = [];
+        var l1 = new THREE.Vector2(0,0);
+        var l2 = new THREE.Vector2(1,0);
+        var l3 = new THREE.Vector2(1,0.25);
+        var l0 = new THREE.Vector2(0,0.25);
+        geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
+        var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+        meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+        meshLeft.position.set(x,45,z+55);
+        var geometryRight = new THREE.PlaneGeometry( 110, 16, 1, 1 );
+        geometryRight.faceVertexUvs[0] = [];
+        var r1 = new THREE.Vector2(0,0);
+        var r2 = new THREE.Vector2(1,0);
+        var r3 = new THREE.Vector2(1,0.25);
+        var r0 = new THREE.Vector2(0,0.25);
+        geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
+        var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+55,45,z);
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,meshTop,meshLeft,meshRight,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube27(x,z) {
+        var geometry = new THREE.CubeGeometry( 110, 12, 90);
+        var texture = new THREE.TextureLoader().load( "source/stool.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,44,z);
+
+        var geometry1 = new THREE.CubeGeometry( 14, 48, 14);
+        var material1 = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh( geometry1,material1);
+        mesh1.position.set(x-34,18,z+34);
+        mesh1.rotation.x = - Math.PI / 20;
+        mesh1.rotation.z = - Math.PI / 40;
+        mesh2 = mesh1.clone();
+        mesh2.position.set(x+34,18,z+34);
+        mesh2.rotation.z =  Math.PI / 40;
+        mesh3 = mesh1.clone();
+        mesh3.position.set(x-34,18,z-34);
+        mesh3.rotation.x =  Math.PI / 20;
+        mesh4 = mesh1.clone();
+        mesh4.position.set(x+34,18,z-34);
+        mesh4.rotation.x =  Math.PI / 20;
+        mesh4.rotation.z =  Math.PI / 40;
+
+        Shadow =  makeShadow_stool(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,mesh1,mesh2,mesh3,mesh4,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcube07(x,z) {
+        var geometry = new THREE.CubeGeometry( 120, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0x8e8e8e} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometry2 = new THREE.PlaneGeometry( 100, 120 );
+        var texture = new THREE.TextureLoader().load( "source/disk.png" );
+        var material2 = new THREE.MeshBasicMaterial( {map:texture} );
+        var mesh1 = new THREE.Mesh( geometry2, material2 );
+        mesh1.position.set(x,50.01,z);
+        mesh1.rotation.x =  -Math.PI / 2;
+        mesh1.rotation.z =  Math.PI / 2;
+
+        Shadow =  makeShadow2(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,mesh1,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatdesk(x,z) {
+        var geometryUnder = new THREE.CylinderGeometry(50, 50, 6, 30);
+        var materialUnder = new THREE.MeshLambertMaterial({ color:0xafafaf});
+        deskUnder = new THREE.Mesh(geometryUnder,materialUnder );
+        deskUnder.position.set(x,47,z);
+        var geometryBelow = new THREE.CylinderGeometry(10, 30, 49, 30);
+        var materialBelow = new THREE.MeshLambertMaterial({ color:0x686868});
+        deskBelow = new THREE.Mesh(geometryBelow,materialBelow );
+        deskBelow.position.set(x,25,z);
+        Shadow =  makeShadow_desk(x,z);
+        group = new THREE.Object3D();
+        group.add(deskUnder,deskBelow,Shadow);
+        scene.add(group);
+        return group;
+    }
+    
+    function creatdesk2(x,z) {
+        var geometryUnder = new THREE.CylinderGeometry(50, 50, 6, 30);
+        var materialUnder = new THREE.MeshLambertMaterial({ color:0x686868});
+        deskUnder = new THREE.Mesh(geometryUnder,materialUnder );
+        deskUnder.position.set(x,47,z);
+        var geometryBelow = new THREE.CylinderGeometry(10, 30, 49, 30);
+        var materialBelow = new THREE.MeshLambertMaterial({ color:0x979797});
+        deskBelow = new THREE.Mesh(geometryBelow,materialBelow );
+        deskBelow.position.set(x,25,z);
+        Shadow =  makeShadow_desk(x,z);
+        group = new THREE.Object3D();
+        group.add(deskUnder,deskBelow,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcylinder(x,z) {
+        group = creatcylinder_canvas(x,z,"#ffffff","#979797",0xffffff,0x979797);
+        return group; 
+    }
+
+    function creatcylinder2(x,z) {
+        group = creatcylinder_canvas(x,z,"#649569","#7bc487",0x649569,0xffffff);
+        return group; 
+    }
+
+    function creatcup(x,z) {
+        var geometryUnder = new THREE.CylinderGeometry(30, 36, 10, 30, 3, true);
+        var materialUnder = new THREE.MeshLambertMaterial({ color:0x464646});
+        meshUnder = new THREE.Mesh(geometryUnder,materialUnder );
+        meshUnder.position.set(x,45,z);
+        var geometry = new THREE.CircleGeometry( 30, 30 );
+        var texture = new THREE.TextureLoader().load( "source/westore_desk.png" );
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        texture.needsUpdate = true;
+        var circle = new THREE.Mesh( geometry, material );
+        circle.position.set(x,50,z);
+        circle.rotation.x =  -Math.PI / 2;
+        circle.rotation.z =  Math.PI / 4;
+        var geometryBelow = new THREE.CylinderGeometry(32, 20, 40, 30, 3, true);
+        var texture2 = new THREE.TextureLoader().load( "source/westore.png" );
+        var materialBelow = new THREE.MeshBasicMaterial( {map:texture2} );
+        texture2.needsUpdate = true;
+        meshBelow = new THREE.Mesh(geometryBelow,materialBelow );
+        meshBelow.position.set(x,20,z);
+        meshBelow.rotation.y =  -3* Math.PI / 4;
+        Shadow =  makeShadow_cup(x,z);
+        group = new THREE.Object3D();
+        group.add(meshUnder,meshBelow,circle,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatGround(x,z,color){
+        var geometryTop = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var materialTop = new THREE.MeshLambertMaterial({ color:color});
+        meshTop = new THREE.Mesh( geometryTop,materialTop );
+        meshTop.rotation.x =  -Math.PI / 2;
+        meshTop.position.set(x,-0.01,z);
+        scene.add(meshTop);
+        return meshTop;
+    }
+
+    function topPlane_color(x,z,topcolor){
+        var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+        var materialTop = new THREE.MeshLambertMaterial({ color:topcolor});
+        meshTop = new THREE.Mesh( geometryTop,materialTop );
+        meshTop.rotation.x =  -Math.PI / 2;
+        meshTop.position.set(x,50,z);
+        return meshTop;
+    }
+
+    function makeShadow(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 116, 160, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0 , z+6 );
+        return meshShadow;
+    }
+
+    function makeShadow2(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 112, 180, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0 , z+8 );
+        return meshShadow;
+    }
+
+    function makeShadow_player(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 22, 60, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/player_shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({color:0xafafaf,map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-28 , 50.02 , z );
+        return meshShadow;
+    }
+
+    function makeShadow_cylinder(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 90, 130, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0 , z+8 );
+        return meshShadow;
+    }
+
+    function makeShadow_cup(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 50, 80, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0 , z+8 );
+        return meshShadow;
+    }
+
+    function makeShadow_desk(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 90, 140, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/desk_shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-45 ,0 , z+5 );
+        return meshShadow;
+    }
+
+    function makeShadow_stool(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 100, 130, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/stool_shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-36 ,0 , z+4 );
+        return meshShadow;
+    }
+
+    function canvasOneFace(x,z,texture,color) {
+            var geometry = new THREE.CubeGeometry( 100, 50, 100);
+            var material = new THREE.MeshLambertMaterial( { color:color} );
+            mesh = new THREE.Mesh( geometry,material);
+            mesh.position.set(x,25,z);
+            var geometryRight = new THREE.PlaneGeometry( 100,50 );
+            var materialRight = new THREE.MeshLambertMaterial({map:texture});
+            texture.needsUpdate = true;
+            meshRight = new THREE.Mesh( geometryRight,materialRight );
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50.01,25,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 , 0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshRight);
+            group.add(mesh);
+            group.add(Shadow);
+            scene.add(group);
+            return group;
+        }
+
+    function canvasTwoFace(x,z,texture,topColor){
+            var meshTop = topPlane_color(x,z,topColor);
+            var geometryLeft = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            texture.needsUpdate = true;
+            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+            meshLeft.position.set(x,25,z+50);
+            var meshRight = meshLeft.clone();
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50,25,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 ,0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshTop);
+            group.add(meshLeft);
+            group.add(meshRight);
+            group.add(Shadow);
+            scene.add(group);
+            return group;
+    }
+
+    function canvasTwoFace_circle(x,z,colorTop,colorTop2,color) {
+            var meshTop = topPlane_color(x,z,colorTop);
+            var geometryLeft = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+            var canvas = document.createElement('canvas');
+            canvas.width=100;
+            canvas.height=50;
+            var ctx = canvas.getContext('2d');
+            ctx.rect(0,0,100,50);
+            ctx.fillStyle=colorTop2;
+            ctx.fill();         
+            ctx.beginPath();
+            ctx.arc(50,25,20,0,2*Math.PI);
+            ctx.fillStyle=color;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(50,25,10,0,2*Math.PI);
+            ctx.fillStyle=colorTop2;
+            ctx.fill();
+            var texture = new THREE.Texture(canvas);
+            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            texture.needsUpdate = true;
+            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+            meshLeft.position.set(x,25,z+50);
+            var meshRight = meshLeft.clone();
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50,25,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 , 0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshTop,meshLeft,meshRight,Shadow);
+            scene.add(group);
+            return group;
+    }
+
+     function canvasTwoFace_5stripe(x,z,colorTop,colorTop2,color) {
+        var canvas = document.createElement('canvas');
+        canvas.width=100;
+        canvas.height=50;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle=colorTop2;
+        ctx.fillRect(0,0,100,10);
+        ctx.fillStyle=color;
+        ctx.fillRect(0,10,100,10);
+        ctx.fillStyle=colorTop2;
+        ctx.fillRect(0,20,100,10);
+        ctx.fillStyle=color;
+        ctx.fillRect(0,30,100,10);
+        ctx.fillStyle=colorTop2;
+        ctx.fillRect(0,40,100,10);
+        var texture = new THREE.Texture(canvas);
+        group = canvasTwoFace(x,z,texture,colorTop);
+        return group;
+    }
+
+    function canvasTwoFace_3stripe(x,z,colorTop,colorTop2,color) {
+        var canvas = document.createElement('canvas');
+        canvas.width=100;
+        canvas.height=50;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle=colorTop2;
+        ctx.fillRect(0,0,100,10);
+        ctx.fillStyle=color;
+        ctx.fillRect(0,10,100,30);
+        ctx.fillStyle=colorTop2;
+        ctx.fillRect(0,40,100,10);
+        var texture = new THREE.Texture(canvas);
+        group = canvasTwoFace(x,z,texture,colorTop);
+        return group;
+    }
+
+    function creatcylinder_canvas(x,z,colorTop,colorTop2,color,color2){
+        var geometry2 = new THREE.CylinderGeometry(40, 40, 44, 30, 3, true);
+        var material2 = new THREE.MeshLambertMaterial({ color:color2});
+        mesh2 = new THREE.Mesh(geometry2,material2 );
+        mesh2.position.set(x,22,z);
+        var geometry1 = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
+        var material1 = new THREE.MeshLambertMaterial({ color:color});
+        mesh1 = new THREE.Mesh(geometry1,material1);
+        mesh1.position.set(x,47,z);
+        var geometry = new THREE.CircleGeometry( 40, 30 );
+        var canvas = document.createElement('canvas');
+        canvas.width=80;
+        canvas.height=80;
+        var ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(40,40,42,0,2*Math.PI);
+        ctx.fillStyle=colorTop;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(42,42,30,0,2*Math.PI);
+        ctx.fillStyle=colorTop2;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(42,42,20,0,2*Math.PI);
+        ctx.fillStyle=colorTop;
+        ctx.fill();
+        var texture = new THREE.Texture(canvas);
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        texture.needsUpdate = true;
+        var circle = new THREE.Mesh( geometry, material );
+        circle.position.set(x,50,z);
+        circle.rotation.x =  -Math.PI / 2;
+        Shadow =  makeShadow_cylinder(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh1,mesh2,circle,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function allPicThreeFace(x,z,picture,h) {
+            var texture = new THREE.TextureLoader().load( picture );
+            var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+            geometryTop.faceVertexUvs[0] = [];
+            var t1 = new THREE.Vector2(0,0.34);//图片左下角
+            var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
+            var t3 = new THREE.Vector2(0.66,1);//图片右上角
+            var t0 = new THREE.Vector2(0,1);//图片左上角
+            geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var materialTop = new THREE.MeshLambertMaterial({map:texture});
+            meshTop = new THREE.Mesh( geometryTop,materialTop );
+            meshTop.rotation.x =  -Math.PI / 2;
+            meshTop.position.set(x,h,z);
+            var geometryLeft = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryLeft.faceVertexUvs[0] = [];
+            var l1 = new THREE.Vector2(0,0);
+            var l2 = new THREE.Vector2(0.65,0);
+            var l3 = new THREE.Vector2(0.65,0.333);
+            var l0 = new THREE.Vector2(0,0.333);
+            geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
+            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+            meshLeft.position.set(x,h/2,z+50);
+            var geometryRight = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryRight.faceVertexUvs[0] = [];
+            var r1 = new THREE.Vector2(1,0.36);
+            var r2 = new THREE.Vector2(1,1);
+            var r3 = new THREE.Vector2(0.666,1);
+            var r0 = new THREE.Vector2(0.666,0.36);
+            geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
+            var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
+            meshRight = new THREE.Mesh( geometryRight,materialRight );
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50,h/2,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 , 0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshTop, meshLeft, meshRight,Shadow);
+            scene.add(group);
+            return group;  
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        controls.update();
+        render();
+    }
+
+    function render() {
+    renderer.render( scene, camera );
+    }
+
+
+</script>
+<div id="info">跳一跳</div>
+</body>
+</html>
