@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <style>
+        div#canvas-frame {
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                height: 600px;
+            }
+      
+    </style>
+</head>
+
+<script src="build/three.js"></script>
+<script src="js/WebGL.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/tween.min.js"></script>
+<!-- <script src="js/helpers/BoxHelper.js"></script> -->
+
+<script>
+    if ( WEBGL.isWebGLAvailable() === false ) {
+    document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+    }
+    
+    var camera,  scene, renderer;
+    var stats;
+
+    function threeStart() {
+                init();
+                animate();
+            }
+
+    var player;
+    var playertween;
+    var playerShadow;
+    var jumpDistance;
+
+    function init() {
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0x8797a4 );
+
+        width = document.getElementById('canvas-frame').clientWidth;
+        height = document.getElementById('canvas-frame').clientHeight;
+		
+        renderer = new THREE.WebGLRenderer({ antialias: true } );
+        // renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(width, height );
+        document.getElementById('canvas-frame').appendChild( renderer.domElement );
+
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '8px';
+        stats.domElement.style.top = '8px';
+        document.getElementById('canvas-frame').appendChild( stats.domElement );
+ 
+        camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 2000 );
+        camera.position.set( 200 , 200 , 200 );
+        camera.lookAt(new THREE.Vector3(0,0,0));
+
+        light = new THREE.AmbientLight( 0xFFFFFF,0.35 );
+        scene.add( light );
+
+        light2 = new THREE.DirectionalLight(0xFFFFFF,1);
+        light2.position.set(3,4,2);
+        scene.add(light2);
+
+        ground = creatGround(0,0,0x8797a4)
+        cube04 = creatcube04(0,0);
+        cube02 = creatcube02(0,-200);
+
+        player = creatcubeplayer(0,100,0);
+        scene.add(player);
+        playerShadow = makeShadow_player(-20,0);
+        scene.add(playerShadow);    
+
+        // var playerHelper = new THREE.BoxHelper( player );
+        // scene.add( playerHelper );
+
+        playerShow();   
+
+        // setTimeout(function(){},2000); //Showing
+
+        
+
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    function playerShow() {
+        var Option = { py: player.position.y,sx:playerShadow.position.x};
+        new TWEEN.Tween(Option)
+                        .to({
+                            py: 50,sx: 0
+                        },600)
+                        .onUpdate(function() {
+                            player.position.y = this.py;
+                            playerShadow.position.x = this.sx;
+                        })
+                        .onComplete(function() {
+                            var downTime = 0;
+                            document.getElementById("canvas-frame").addEventListener("mousedown", function(){
+                                beStronger();
+                                bulingBulingDown();  //粒子效果1
+                                var now = new Date();
+                                downTime = now.getTime();
+                            });
+                            document.getElementById("canvas-frame").addEventListener("mouseup", function(){                   
+                                scene.remove(playerShadow); 
+                                var now2 = new Date();
+                                upTime = now2.getTime();
+                                jumpDistance = Math.ceil((upTime - downTime)/100)<7? Math.ceil((upTime - downTime)/100)*50:7*50;
+                                console.log(jumpDistance);
+                                jumpr(jumpDistance);
+                            });
+                        })
+                        .easing(TWEEN.Easing.Bounce.Out) 
+                        .delay(500)
+                        .start();
+    }
+
+    function beStronger() {    
+        var Option = { sy: player.scale.y,sx:playerShadow.scale.x};
+        playertween = new TWEEN.Tween(Option)
+                        .to({
+                            sy: 0.5,sx: 0.5
+                        },800)
+                        .onUpdate(function() {
+                            player.scale.y = this.sy;
+                            playerShadow.scale.x = this.sx;
+                        })
+                        .interpolation( TWEEN.Interpolation.Bezier )
+                        .start();
+    }
+
+    function bulingBulingDown() {    
+    }
+
+    function bulingBulingUp() {    
+    }
+
+    function jumpr(playerMoveLen) {
+        var Option = { py:0,pz:0,sy: player.scale.y};
+        new TWEEN.Tween(Option)
+                        .to({
+                            py: [150, 0],
+                            pz: [-playerMoveLen*0.5,-playerMoveLen],
+                            sy: [1,1],
+                        }, 800)
+                        .onUpdate(function() {
+                            player.position.y = this.py+50;
+                            player.position.z = this.pz+6;
+                            player.scale.y = this.sy;
+                        })
+                        .onComplete(function() {
+                            bulingBulingUp();
+                            playerShadow.scale.x =1;
+                            playerShadow.position.z = -playerMoveLen+6;
+                            scene.add(playerShadow);
+                        })  
+                        .interpolation( TWEEN.Interpolation.Bezier )
+                        .start();
+    }
+
+    function creatcube04(x,z) {
+        group = allPicThreeFace(x, z, "source/dict.png", 50)
+        return group;
+    }
+
+   
+    function creatcube02(x,z) {
+        group = allPicThreeFace(x, z, "source/express.png", 50)
+        return group;
+    }
+
+    function creatcubeplayer(x,y,z) {
+        var geometry = new THREE.PlaneGeometry( 15,50 );
+        var texture = new THREE.TextureLoader().load( "source/i.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        material.transparent = true;
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.rotation.y =  Math.PI / 4;
+        group = new THREE.Group(); // new THREE.Object3D();
+				group.add(mesh);
+				mesh.translateY(25);
+        group.position.set(x+6,y+50,z+6);
+        return group;
+    }
+
+    function makeShadow(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 116, 160, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0 , z+6 );
+        return meshShadow;
+    }
+
+    function makeShadow_player(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 14, 36, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/shadow_player2.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({color:0xafafaf,map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        group = new THREE.Group(); // new THREE.Object3D();
+				group.add(meshShadow);
+				meshShadow.translateY(14);
+        group.position.set(x,50.02,z+2);
+        return group;
+    }
+
+    function creatGround(x,z,color){
+        var geometryTop = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var materialTop = new THREE.MeshLambertMaterial({ color:color});
+        meshTop = new THREE.Mesh( geometryTop,materialTop );
+        meshTop.rotation.x =  -Math.PI / 2;
+        meshTop.position.set(x,-0.01,z);
+        scene.add(meshTop);
+        return meshTop;
+    }
+
+    function allPicThreeFace(x,z,picture,h) {
+            var texture = new THREE.TextureLoader().load( picture );
+            var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+            geometryTop.faceVertexUvs[0] = [];
+            var t1 = new THREE.Vector2(0,0.34);//图片左下角
+            var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
+            var t3 = new THREE.Vector2(0.66,1);//图片右上角
+            var t0 = new THREE.Vector2(0,1);//图片左上角
+            geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var materialTop = new THREE.MeshLambertMaterial({map:texture});
+            meshTop = new THREE.Mesh( geometryTop,materialTop );
+            meshTop.rotation.x =  -Math.PI / 2;
+            meshTop.position.set(x,h,z);
+            var geometryLeft = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryLeft.faceVertexUvs[0] = [];
+            var l1 = new THREE.Vector2(0,0);
+            var l2 = new THREE.Vector2(0.65,0);
+            var l3 = new THREE.Vector2(0.65,0.333);
+            var l0 = new THREE.Vector2(0,0.333);
+            geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
+            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+            meshLeft.position.set(x,h/2,z+50);
+            var geometryRight = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryRight.faceVertexUvs[0] = [];
+            var r1 = new THREE.Vector2(1,0.36);
+            var r2 = new THREE.Vector2(1,1);
+            var r3 = new THREE.Vector2(0.666,1);
+            var r0 = new THREE.Vector2(0.666,0.36);
+            geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
+            var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
+            meshRight = new THREE.Mesh( geometryRight,materialRight );
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50,h/2,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 , 0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshTop, meshLeft, meshRight,Shadow);
+            scene.add(group);
+            return group;  
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        stats.update();
+        TWEEN.update();
+        render();
+        
+    }
+
+    function render() {
+    renderer.render( scene, camera );
+    }
+
+</script>
+
+<body onload="threeStart();">
+<div id="canvas-frame" ></div>
+<h1> YOU JUMP I JUMP</h1>
+<br>
+<p id="auth"> author:  zhoujie <1601584358@qq.com> </p>
+<p> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump">https://github.com/zj19941113/You_Jump_I_Jump</a></p>
+</body>
+</html>
