@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title></title>
+    <title>You_Jump_I_Jump</title>
     <meta charset="utf-8">
+    <meta name="author" content="zhoujie">
     <style>
         div#canvas-frame {
                 border: none;
@@ -157,7 +158,6 @@
                         })
                         .interpolation( TWEEN.Interpolation.Bezier )
                         .start();
-     
     }
 
     function jumpr(playerMoveLen) {
@@ -190,6 +190,7 @@
                                 console.log(jumpDistance,buildDistance);
                                 if(jumpDistance-buildDistance<=50&&jumpDistance-buildDistance>=-50){
                                     // 下个盒子上
+                                    pointGet();
                                     changeCamera();
                                     bulingBulingUp();
                                     console.log("下个盒子上");
@@ -201,22 +202,22 @@
                                 }
                                 else if(jumpDistance>50&&jumpDistance<62){
                                     //本盒子边上掉落
-                                    gameOver();
+                                    gameOver(11);
                                     console.log("本盒子边上掉落");
                                 }
                                 else if(jumpDistance-buildDistance<62&&jumpDistance-buildDistance>50){
                                     //下个盒子远边上掉落
-                                    gameOver();
+                                    gameOver(22);
                                     console.log("下个盒子远边上掉落");
                                 }
                                 else if(jumpDistance-buildDistance>-38&&jumpDistance-buildDistance<-50){
                                     //下个盒子近边上掉落
-                                    gameOver();
+                                    gameOver(21);
                                     console.log("下个盒子近边上掉落");
                                 }
                                 else{
                                     //竖直下落
-                                    gameOver();
+                                    gameOver(0);
                                     console.log("竖直下落");
                                 }
                             
@@ -263,7 +264,7 @@
     }
 
     function createBox() {  
-        mainmesh3 = creatcube25(-150,0);  
+        mainmesh3 = creatcube25(-180,0);  
         console.log(mainmesh3);
         mainmesh3.position.set(0,100,0);
         scene.add(mainmesh3);
@@ -280,7 +281,36 @@
                         .start();
     }
 
-    function gameOver() {    
+    function gameOver(flog) {  
+        switch(flog){
+            case 0:downTween0();break;
+            case 11:downTween11();break;
+            case 21:downTween21();break;
+            case 22:downTween22();break;
+            case 12:downTween12();break;
+            case 23:downTween23();break;
+            case 24:downTween24();break;
+        }
+        function downTween0() {    
+        }
+        function downTween11() {    
+        }
+        function downTween21() {    
+        }
+        function downTween22() {    
+        }
+        function downTween12() {    
+        }
+        function downTween23() {    
+        }
+        function downTween24() {    
+        }
+    }
+
+    function pointCount() {    
+    }
+
+    function pointGet() {    
     }
 
     function creatcube04(x,z) {
@@ -454,6 +484,6 @@
 <h1> YOU JUMP I JUMP</h1>
 <br>
 <p id="auth"> author:  zhoujie <1601584358@qq.com> </p>
-<p> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump">https://github.com/zj19941113/You_Jump_I_Jump</a></p>
+<p> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump" target="_blank" >https://github.com/zj19941113/You_Jump_I_Jump</a></p>
 </body>
 </html>
