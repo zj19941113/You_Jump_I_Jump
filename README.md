@@ -6,4 +6,4 @@
 目前只写了盒子的生成部分，附全家福一张，剩下的随缘，可能没空就不更新了嘻嘻  
 
 
-![image](https://github.com/zj19941113/You_Jump_I_Jump/blob/master/jump.gif) 
+![image](https://github.com/zj19941113/You_Jump_I_Jump/blob/master/youjumpijump.gif) 
