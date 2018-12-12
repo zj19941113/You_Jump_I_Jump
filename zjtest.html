@@ -1,0 +1,459 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <style>
+        div#canvas-frame {
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                height: 600px;
+            }
+      
+    </style>
+</head>
+
+<script src="build/three.js"></script>
+<script src="js/WebGL.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/tween.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+
+<script>
+    if ( WEBGL.isWebGLAvailable() === false ) {
+    document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+    }
+    
+    var camera,  scene, controls, renderer;
+    var stats;
+
+    function threeStart() {
+                init();
+                animate();
+            }
+
+    var player;
+    var center;
+    var jumpDistance, buildDistance;
+    var downtween;
+    var mainmesh1,mainmesh2,mainmesh3,mainmesh4,mainmesh5;
+
+    function init() {
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0x8797a4 );
+
+        width = document.getElementById('canvas-frame').clientWidth;
+        height = document.getElementById('canvas-frame').clientHeight;
+		
+        renderer = new THREE.WebGLRenderer({ antialias: true } );
+        // renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(width, height );
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-frame').appendChild( renderer.domElement );
+
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '8px';
+        stats.domElement.style.top = '8px';
+        document.getElementById('canvas-frame').appendChild( stats.domElement );
+ 
+        camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 2000 );
+        camera.position.set( 200 , 165 , 150 );
+        center = new THREE.Vector3(0,0,0);
+        camera.lookAt(center);
+
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 100;
+        controls.maxDistance = 500;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        light = new THREE.AmbientLight( 0xFFFFFF,0.7);
+        scene.add( light );
+        // light3 = new THREE.DirectionalLight( 0xFFFFFF,0.2);
+        // // light2.position.set(0,400,0);
+        // scene.add( light3 );
+
+        light2 = new THREE.DirectionalLight(0xFFFFFF,0.5);
+        light2.castShadow = true;//开启灯光投射阴影
+        light2.position.set(300,400,0);
+        // light2.onlyShadow = true;
+        // light2.shadowDarkness = 0.6;
+        light2.shadow.mapSize.width = 1000;  // default 512
+        light2.shadow.mapSize.height = 1000 ; // default 512
+        light2.shadow.camera.near = 200;    // default 0.5
+        light2.shadow.camera.far = 600;     // default 500
+        light2.shadow.camera.left = -500;
+        light2.shadow.camera.right = 500;
+        light2.shadow.camera.top = 500;
+        light2.shadow.camera.bottom = -500;
+        // var helper = new THREE.CameraHelper( light2.shadow.camera );
+        // scene.add( helper );
+
+        var ground = creatGround(0,0,0x8797a4)
+        mainmesh1 = creatcube04(0,0);
+        scene.add(mainmesh1);
+        buildDistance = 200;
+        mainmesh2 = creatcube02(0,-buildDistance);
+        scene.add(mainmesh2);
+        player = creatcubeplayer(0,-50,0);
+        player.position.set(0,200,0);
+
+        var playerHelper = new THREE.BoxHelper( player );
+        // scene.add( playerHelper );
+        scene.add(player);  
+        // console.log(player);
+        // light2.target = player.children[1];
+        scene.add(light2);
+
+        var Option = { py: player.position.y};
+        new TWEEN.Tween(Option)
+                        .to({
+                            py: 50,
+                        },600)
+                        .onUpdate(function() {
+                            player.position.y = this.py;
+                        })
+                        .onComplete(function() {
+                            var downTime = 0;
+                            
+                            document.getElementById("canvas-frame").addEventListener("mousedown", function(){
+                                beStronger();
+                                bulingBulingDown();  
+                                var now = new Date();
+                                downTime = now.getTime();
+                            });
+                            document.getElementById("canvas-frame").addEventListener("mouseup", function(){                   
+                                downtween.stop();
+                                var now2 = new Date();
+                                upTime = now2.getTime();
+                                jumpDistance = Math.ceil((upTime - downTime)/100)<7? Math.ceil((upTime - downTime)/100)*30:7*30;
+                                // console.log(jumpDistance);
+                                jumpr(jumpDistance);
+                            });
+                        })
+                        .easing(TWEEN.Easing.Bounce.Out) 
+                        .delay(500)
+                        .start();   
+
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    function beStronger() {    
+        var Option1 = { py: player.children[0].position.y,sy: player.children[1].scale.y,};
+        downtween = new TWEEN.Tween(Option1)
+                        .to({
+                            py: 36,
+                            sy: 0.5,
+                        },800)
+                        .onUpdate(function() {
+                            player.children[0].position.y = this.py;
+                            player.children[1].scale.y = this.sy;
+                        })
+                        .interpolation( TWEEN.Interpolation.Bezier )
+                        .start();
+     
+    }
+
+    function jumpr(playerMoveLen) {
+        // if(!jumpr1 && !jumpr1){
+            var Option1 = { hpy:player.children[0].position.y,hsy:player.children[1].scale.y};
+            jumpr1 = new TWEEN.Tween(Option1)
+                            .to({
+                                hpy:56,
+                                hsy:1,
+                            }, 50)
+                            .onUpdate(function() {
+                                player.children[0].position.y = this.hpy;
+                                player.children[1].scale.y = this.hsy;
+                            })
+
+            var Option = { py:0,pz:0};
+            jumpr2 = new TWEEN.Tween(Option)
+                            .to({
+                                py: [150, 0],
+                                pz: [-playerMoveLen*0.5,-playerMoveLen],
+                                // rz: [Math.PI, 0],
+                            }, 400)
+                            .onUpdate(function() {
+                                player.position.y = this.py+50;
+                                player.position.z = this.pz;
+                                // player.rotateX(this.rz);
+                            })
+                            .onComplete(function() {
+                                // console.log(player);
+                                console.log(jumpDistance,buildDistance);
+                                if(jumpDistance-buildDistance<=50&&jumpDistance-buildDistance>=-50){
+                                    // 下个盒子上
+                                    changeCamera();
+                                    bulingBulingUp();
+                                    console.log("下个盒子上");
+                                }
+                                else if(jumpDistance<=50){
+                                    //本盒子上
+                                    bulingBulingUp();
+                                    console.log("本盒子上");
+                                }
+                                else if(jumpDistance>50&&jumpDistance<62){
+                                    //本盒子边上掉落
+                                    gameOver();
+                                    console.log("本盒子边上掉落");
+                                }
+                                else if(jumpDistance-buildDistance<62&&jumpDistance-buildDistance>50){
+                                    //下个盒子远边上掉落
+                                    gameOver();
+                                    console.log("下个盒子远边上掉落");
+                                }
+                                else if(jumpDistance-buildDistance>-38&&jumpDistance-buildDistance<-50){
+                                    //下个盒子近边上掉落
+                                    gameOver();
+                                    console.log("下个盒子近边上掉落");
+                                }
+                                else{
+                                    //竖直下落
+                                    gameOver();
+                                    console.log("竖直下落");
+                                }
+                            
+                            })  
+                            // .easing(TWEEN.Easing.Sinusoidal.InOut) 
+                            .interpolation( TWEEN.Interpolation.Bezier )
+            jumpr1.chain(jumpr2);
+            // }
+        jumpr1.start();
+
+    }
+
+    function bulingBulingDown() {    
+    }
+
+    function bulingBulingUp() {    
+    }
+
+    function changeCamera() { 
+        // console.log(player);
+        // console.log(mainmesh1);
+        // console.log(mainmesh2);
+         
+        var Option = {pz:player.position.z,ps:0,ps2:0};
+        new TWEEN.Tween(Option)
+            .to({
+                pz: buildDistance-jumpDistance,
+                ps:buildDistance,
+                ps2:buildDistance,
+            }, 800)
+            .onUpdate(function() {
+                mainmesh1.position.set(0 , 0, this.ps);
+                mainmesh2.position.set(0 , 0, this.ps2);
+                player.position.set(0 , 50, this.pz);                                       
+            })
+            .onComplete(function() {
+                center.set(0,0,-buildDistance);
+                createBox();
+
+            })
+            // .delay(1000)
+            .start();
+        
+    }
+
+    function createBox() {  
+        mainmesh3 = creatcube25(-150,0);  
+        console.log(mainmesh3);
+        mainmesh3.position.set(0,100,0);
+        scene.add(mainmesh3);
+        new TWEEN.Tween(mainmesh3.position)
+                        .to({
+                            y: 0,
+                        },500)
+                        // .onUpdate(function() {
+                        //     player.children[0].position.y = this.py;
+                        //     player.children[1].scale.y = this.sy;
+                        // })
+                        // .interpolation( TWEEN.Interpolation.Bezier )
+                        .easing(TWEEN.Easing.Bounce.Out) 
+                        .start();
+    }
+
+    function gameOver() {    
+    }
+
+    function creatcube04(x,z) {
+        group = allPicThreeFace(x, z, "source/dict.png", 50)
+        return group;
+    }
+
+   
+    function creatcube02(x,z) {
+        group = allPicThreeFace(x, z, "source/express.png", 50)
+        return group;
+    }
+
+    function creatcube25(x,z) {
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometryRight = new THREE.PlaneGeometry( 66,33 );
+        var textureRight = new THREE.TextureLoader().load( "source/white_face.png" );
+        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
+        materialRight.transparent = true;
+        meshRight = new THREE.Mesh( geometryRight,materialRight );
+        meshRight.rotation.y =  Math.PI / 2;
+        meshRight.position.set(x+50.01,20,z);
+
+        var geometry2 = new THREE.CubeGeometry( 40, 30, 15);
+        var material2 = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
+        var leg1 = new THREE.Mesh( geometry2,material2);
+        leg1.position.set(x+22,30,z+58);
+        leg1.rotation.x = - Math.PI / 4;
+        var leg2 = leg1.clone();
+        leg2.position.set(x+22,31,z+58-112);
+        leg2.rotation.x =  Math.PI / 4;
+        Shadow =  makeShadow(x,z);
+        group = new THREE.Object3D();
+        group.add(mesh,meshRight,leg1,leg2,Shadow);
+        scene.add(group);
+        return group;
+    }
+
+    function creatcubeplayer(x,y,z) {
+        var geometry = new THREE.SphereGeometry(9, 30, 30);
+        var texture = new THREE.TextureLoader().load( "source/head.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.position.set(x,y+106,z);
+        mesh.castShadow = true;
+        mesh.rotation.y =  Math.PI / 2;
+
+        var geometry3 = new THREE.SphereGeometry(11.5, 30, 30, 0, Math.PI * 2, 0, Math.PI / 3);
+        var texture3 = new THREE.TextureLoader().load( "source/head1.png" );
+        var material3 = new THREE.MeshLambertMaterial({map:texture3});
+        mesh3 = new THREE.Mesh( geometry3,material3 );
+        mesh3.position.set(x,y+78,z);
+        mesh3.castShadow = true;
+        mesh3.rotation.y =  Math.PI*7 / 10;
+
+        var geometry1 = new THREE.CylinderGeometry(10, 9, 8, 30);
+        var texture1 = new THREE.TextureLoader().load( "source/top.png" );
+        var material1 = new THREE.MeshLambertMaterial({map:texture1});
+        mesh1 = new THREE.Mesh(geometry1,material1 );
+        mesh1.position.set(x,y+80,z);
+        mesh1.castShadow = true;
+        mesh1.rotation.y = - Math.PI / 4;
+
+        var geometry2 = new THREE.CylinderGeometry(9, 12, 26, 30);
+        var texture2 = new THREE.TextureLoader().load( "source/bottom.png" );
+        var material2 = new THREE.MeshLambertMaterial({map:texture2});
+        mesh2 = new THREE.Mesh(geometry2,material2 );
+        mesh2.position.set(x,y+63,z);
+        mesh2.castShadow = true;
+        mesh2.rotation.y = - Math.PI / 3;
+
+        body = new THREE.Object3D();
+        body.add(mesh1,mesh2,mesh3);
+
+        group = new THREE.Object3D();
+        group.add(mesh,body);
+        return group;
+    }
+
+    function makeShadow(x,z){
+        var geometryShadow = new THREE.PlaneGeometry( 110, 160, 1, 1 );
+        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
+        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
+        materialShadow.transparent = true;
+        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        meshShadow.rotation.x =  -Math.PI / 2;
+        meshShadow.rotation.z =  Math.PI / 2 ;
+        meshShadow.position.set( x-30 , 0.01 , z+6 );
+        return meshShadow;
+    }
+
+    function creatGround(x,z,color){
+        var geometryTop = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var materialTop = new THREE.MeshLambertMaterial({ color:color});
+        meshTop = new THREE.Mesh( geometryTop,materialTop );
+        meshTop.rotation.x =  -Math.PI / 2;
+        meshTop.position.set(x,-0.01,z);
+        scene.add(meshTop);
+        return meshTop;
+    }
+
+    function allPicThreeFace(x,z,picture,h) {
+            var texture = new THREE.TextureLoader().load( picture );
+            var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+            geometryTop.faceVertexUvs[0] = [];
+            var t1 = new THREE.Vector2(0,0.34);//图片左下角
+            var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
+            var t3 = new THREE.Vector2(0.66,1);//图片右上角
+            var t0 = new THREE.Vector2(0,1);//图片左上角
+            geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var materialTop = new THREE.MeshLambertMaterial({map:texture});
+            meshTop = new THREE.Mesh( geometryTop,materialTop );
+            meshTop.receiveShadow = true;//接收阴影
+            meshTop.rotation.x =  -Math.PI / 2;
+            meshTop.position.set(x,h,z);
+            var geometryLeft = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryLeft.faceVertexUvs[0] = [];
+            var l1 = new THREE.Vector2(0,0);
+            var l2 = new THREE.Vector2(0.65,0);
+            var l3 = new THREE.Vector2(0.65,0.333);
+            var l0 = new THREE.Vector2(0,0.333);
+            geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
+            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
+            meshLeft.position.set(x,h/2,z+50);
+            var geometryRight = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometryRight.faceVertexUvs[0] = [];
+            var r1 = new THREE.Vector2(1,0.36);
+            var r2 = new THREE.Vector2(1,1);
+            var r3 = new THREE.Vector2(0.666,1);
+            var r0 = new THREE.Vector2(0.666,0.36);
+            geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
+            var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
+            meshRight = new THREE.Mesh( geometryRight,materialRight );
+            meshRight.rotation.y =  Math.PI / 2;
+            meshRight.position.set(x+50,h/2,z);
+            Shadow =  makeShadow();
+            Shadow.position.set( x-30 , 0 , z+8 );
+            group = new THREE.Object3D();
+            group.add(meshTop, meshLeft, meshRight,Shadow);
+            // scene.add(group);
+            return group;  
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        stats.update();
+        TWEEN.update();
+        controls.update();
+        render();
+        
+    }
+
+    function render() {
+    renderer.render( scene, camera );
+    }
+
+</script>
+
+<body onload="threeStart();">
+<div id="canvas-frame" ></div>
+<h1> YOU JUMP I JUMP</h1>
+<br>
+<p id="auth"> author:  zhoujie <1601584358@qq.com> </p>
+<p> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump">https://github.com/zj19941113/You_Jump_I_Jump</a></p>
+</body>
+</html>
