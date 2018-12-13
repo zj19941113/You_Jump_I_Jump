@@ -5,11 +5,21 @@
     <meta charset="utf-8">
     <meta name="author" content="zhoujie">
     <style>
+        @font-face{font-family: 'numjump';src : url('source/num.ttf');}
         div#canvas-frame {
                 border: none;
                 cursor: pointer;
                 width: 100%;
                 height: 600px;
+            }
+            #point {
+                position :absolute;
+                left :120px;
+                top :80px;
+                color: #464545;
+                font-size: 50px;
+                font-family: numjump;
+                
             }
       
     </style>
@@ -35,7 +45,8 @@
             }
 
     var player;
-    var center;
+    var point = 0;
+    var playerPosition;
     var jumpDistance, buildDistance;
     var downtween;
     var mainmesh1,mainmesh2,mainmesh3,mainmesh4,mainmesh5;
@@ -56,14 +67,13 @@
 
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
-        stats.domElement.style.left = '8px';
+        stats.domElement.style.right = '8px';
         stats.domElement.style.top = '8px';
         document.getElementById('canvas-frame').appendChild( stats.domElement );
  
         camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 2000 );
         camera.position.set( 200 , 165 , 150 );
-        center = new THREE.Vector3(0,0,0);
-        camera.lookAt(center);
+        camera.lookAt(new THREE.Vector3(0,0,0));
 
         controls = new THREE.OrbitControls( camera, renderer.domElement );
         //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -104,6 +114,7 @@
         scene.add(mainmesh2);
         player = creatcubeplayer(0,-50,0);
         player.position.set(0,200,0);
+        playerPosition = new THREE.Vector3(0,0,0);
 
         var playerHelper = new THREE.BoxHelper( player );
         // scene.add( playerHelper );
@@ -189,16 +200,21 @@
                                 // console.log(player);
                                 console.log(jumpDistance,buildDistance);
                                 if(jumpDistance-buildDistance<=50&&jumpDistance-buildDistance>=-50){
+                                    playerPosition.z -= jumpDistance;
+                                    console.log(playerPosition);
                                     // 下个盒子上
                                     pointGet();
                                     changeCamera();
                                     bulingBulingUp();
                                     console.log("下个盒子上");
+                                    
                                 }
                                 else if(jumpDistance<=50){
+                                    playerPosition.z -= jumpDistance;
                                     //本盒子上
                                     bulingBulingUp();
                                     console.log("本盒子上");
+                                    
                                 }
                                 else if(jumpDistance>50&&jumpDistance<62){
                                     //本盒子边上掉落
@@ -254,7 +270,6 @@
                 player.position.set(0 , 50, this.pz);                                       
             })
             .onComplete(function() {
-                center.set(0,0,-buildDistance);
                 createBox();
 
             })
@@ -265,7 +280,7 @@
 
     function createBox() {  
         mainmesh3 = creatcube25(-180,0);  
-        console.log(mainmesh3);
+        // console.log(mainmesh3);
         mainmesh3.position.set(0,100,0);
         scene.add(mainmesh3);
         new TWEEN.Tween(mainmesh3.position)
@@ -310,7 +325,15 @@
     function pointCount() {    
     }
 
-    function pointGet() {    
+    function pointGet() { 
+        if (jumpDistance-buildDistance!=0){
+            point += 2;
+        }
+        else{
+            point += 1;
+        }
+        console.log(point);
+        document.getElementById("point").innerHTML=point;
     }
 
     function creatcube04(x,z) {
@@ -459,9 +482,12 @@
     }
 
     function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        width = document.getElementById('canvas-frame').clientWidth;
+        height = document.getElementById('canvas-frame').clientHeight;
+        camera.left = width / - 2;
+        camera.right = width /  2
         camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize( width,height );
     }
 
     function animate() {
@@ -481,9 +507,9 @@
 
 <body onload="threeStart();">
 <div id="canvas-frame" ></div>
-<h1> YOU JUMP I JUMP</h1>
-<br>
-<p id="auth"> author:  zhoujie <1601584358@qq.com> </p>
+<div id="point" > 0 </div>
+<h1 style="font-size: 40px"> YOU JUMP I JUMP</h1>
+<p id="auth" style="margin-top:30px"> author:  zhoujie <1601584358@qq.com> </p>
 <p> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump" target="_blank" >https://github.com/zj19941113/You_Jump_I_Jump</a></p>
 </body>
 </html>
