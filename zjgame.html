@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <title></title>
@@ -42,11 +42,12 @@
         renderer = new THREE.WebGLRenderer({ antialias: true } );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMapEnabled = true;//开启阴影，加上阴影渲染
         document.body.appendChild( renderer.domElement );
 
         // camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 1000 );
         camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -1000, 2000 );
-        camera.position.set( 200 , 200 , 200 );
+        camera.position.set( 200 , 180 , 200 );
         camera.lookAt({ x : 0,y : 0,z : 0});
 
         controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -68,6 +69,7 @@
 
         light2 = new THREE.DirectionalLight(0xFFFFFF,1);
         light2.position.set(3,4,2);
+        light2.castShadow = true;//开启灯光投射阴影
         scene.add(light2);
 
         ground = creatGround(0,0,0x8797a4)
@@ -80,15 +82,11 @@
         // meshLeft.position.set(x,y+25,z+50);
         // meshRight.position.set(x+50,y+25,z);
         // material2.transparent = true;
-        
-        // test
-        player = creatcubeplayer(0,0);
-        cube07 = creatcube07(0,0);
 
         // 玩家
-        // player = creatcubeplayer(-0,0);
+        // player = creatcubeplayer(-150,0);
 
-        //条纹box
+        //条纹box 9
         cube10 = creatcube10(-450,0);
         cube11 = creatcube11(-150,0);
         cube12 = creatcube12(-300,0);
@@ -99,7 +97,7 @@
         cube17 = creatcube17(-750,-150);
         cube18 = creatcube18(-150,-150);
 
-        //异形box
+        //异形box 7
         cube21 = creatcube21(0,-450);
         cube22 = creatcube22(-150,-450);
         cube23 = creatcube23(-300,-450);
@@ -108,7 +106,7 @@
         cube26 = creatcube26(-750,-450);
         cube27 = creatcube27(-900,-450);
         
-        //贴图box
+        //贴图box 7
         cube01 = creatcube01(0,-300);
         cube02 = creatcube02(-150,-300);
         cube03 = creatcube03(-300,-300);
@@ -117,28 +115,52 @@
         cube06 = creatcube06(-750,-300);
         cube07 = creatcube07(-900,-300);
         
-        //柱状体
+        //柱状体 5
         desk = creatdesk(0,-600);
         desk2 = creatdesk2(-150,-600);
         cylinder = creatcylinder(-300,-600);
         cylinder2 = creatcylinder2(-450,-600);
         cup = creatcup(-600,-600);
 
+        cube01 = creatcube01(0,0);
+        player = creatcubeplayer(0,0);
+        console.log(scene);
+
+
         window.addEventListener( 'resize', onWindowResize, false );
     }
 
-
     function creatcubeplayer(x,z) {
-        var geometry = new THREE.PlaneGeometry( 22,70 );
-        var texture = new THREE.TextureLoader().load( "source/i.png" );
+        var geometry = new THREE.SphereGeometry(9, 30, 30);
+        var texture = new THREE.TextureLoader().load( "source/head.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
-        material.transparent = true;
-        player = new THREE.Mesh( geometry,material );
-        player.rotation.y =  Math.PI / 4;
-        player.position.set(x+5,85,z+5);
-        Shadow =  makeShadow_player(x,z);
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.position.set(x,106,z);
+        mesh.rotation.y =  Math.PI / 2;
+
+        geometry = new THREE.SphereGeometry(11.5, 30, 30, 0, Math.PI * 2, 0, Math.PI / 3);
+        texture = new THREE.TextureLoader().load( "source/head1.png" );
+        material = new THREE.MeshLambertMaterial({map:texture});
+        mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.position.set(x,78,z);
+        mesh3.rotation.y =  Math.PI*7 / 10;
+
+        geometry = new THREE.CylinderGeometry(10, 9, 8, 30);
+        texture = new THREE.TextureLoader().load( "source/top.png" );
+        material = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.position.set(x,80,z);
+        mesh1.rotation.y = - Math.PI / 4;
+
+        geometry = new THREE.CylinderGeometry(9, 12, 26, 30);
+        texture = new THREE.TextureLoader().load( "source/bottom.png" );
+        material = new THREE.MeshLambertMaterial({map:texture});
+        mesh2 = new THREE.Mesh(geometry,material );
+        mesh2.position.set(x,63,z);
+        mesh2.rotation.y = - Math.PI / 3;
+
         group = new THREE.Object3D();
-        group.add(player,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3);
         scene.add(group);
         return group;
     }
@@ -223,15 +245,15 @@
         var material = new THREE.MeshLambertMaterial( { color:0xf64850} );
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,25,z);
-        var geometryRight = new THREE.PlaneGeometry( 32,32 );
-        var textureRight = new THREE.TextureLoader().load( "source/money.png" );
-        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
-        meshRight = new THREE.Mesh( geometryRight,materialRight );
-        meshRight.rotation.y =  Math.PI / 2;
-        meshRight.position.set(x+50.01,25,z);
+        var geometry = new THREE.PlaneGeometry( 32,32 );
+        var texture = new THREE.TextureLoader().load( "source/money.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.rotation.y =  Math.PI / 2;
+        mesh2.position.set(x+50.01,25,z);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(meshRight,mesh,Shadow);
+        group.add(mesh2,mesh,Shadow);
         scene.add(group);
         return group;
     }
@@ -264,25 +286,25 @@
         var material = new THREE.MeshLambertMaterial( { color:0x64a934} );
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,25,z);
-        var geometryRight = new THREE.PlaneGeometry( 100,50 );
-        var textureRight = new THREE.TextureLoader().load( "source/green_face.png" );
-        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
-        materialRight.transparent = true;
-        meshRight = new THREE.Mesh( geometryRight,materialRight );
-        meshRight.rotation.y =  Math.PI / 2;
-        meshRight.position.set(x+50.01,25,z);
+        geometry = new THREE.PlaneGeometry( 100,50 );
+        var texture = new THREE.TextureLoader().load( "source/green_face.png" );
+        material = new THREE.MeshLambertMaterial({map:texture});
+        material.transparent = true;
+        mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.rotation.y =  Math.PI / 2;
+        mesh2.position.set(x+50.01,25,z);
 
-        var geometry2 = new THREE.CubeGeometry( 40, 30, 15);
-        var material2 = new THREE.MeshLambertMaterial( { color:0x64a934} );
-        var leg1 = new THREE.Mesh( geometry2,material2);
-        leg1.position.set(x+22,31,z+58);
-        leg1.rotation.x = - Math.PI / 4;
-        var leg2 = leg1.clone();
-        leg2.position.set(x+22,31,z+58-112);
-        leg2.rotation.x =  Math.PI / 4;
+        geometry = new THREE.CubeGeometry( 40, 30, 15);
+        material = new THREE.MeshLambertMaterial( { color:0x64a934} );
+        var mesh3 = new THREE.Mesh( geometry,material);
+        mesh3.position.set(x+22,31,z+58);
+        mesh3.rotation.x = - Math.PI / 4;
+        var mesh4 = mesh3.clone();
+        mesh4.position.set(x+22,31,z+58-112);
+        mesh4.rotation.x =  Math.PI / 4;
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(mesh,meshRight,leg1,leg2,Shadow);
+        group.add(mesh,mesh2,mesh3,mesh4,Shadow);
         scene.add(group);
         return group;
     }
@@ -293,42 +315,42 @@
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,25,z);
 
-        var geometry1 = new THREE.CylinderGeometry(20, 20, 10, 30, 3, true);
-        var material1 = new THREE.MeshLambertMaterial({ color:0xd4c836});
-        mesh1 = new THREE.Mesh(geometry1,material1);
+        geometry = new THREE.CylinderGeometry(20, 20, 10, 30, 3, true);
+        material = new THREE.MeshLambertMaterial({ color:0xd4c836});
+        mesh1 = new THREE.Mesh(geometry,material);
         mesh1.position.set(x,25,z+55);
         mesh1.rotation.x =  -Math.PI / 2;
-        var geometry2 = new THREE.PlaneGeometry( 20, 20 );
+        var geometry = new THREE.PlaneGeometry( 20, 20 );
         var texture = new THREE.TextureLoader().load( "source/emotion.png" );
-        var material2 = new THREE.MeshBasicMaterial( {map:texture} );
-        material2.transparent = true;
-        var circle1 = new THREE.Mesh( geometry2, material2 );
-        circle1.position.set(x,25,z+55.01);
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        material.transparent = true;
+        var mesh3 = new THREE.Mesh( geometry, material );
+        mesh3.position.set(x,25,z+55.01);
 
         mesh2 = mesh1.clone();
         mesh2.position.set(x+55,25,z);
         mesh2.rotation.z =  Math.PI / 2;
-        circle2 = circle1.clone();
-        circle2.position.set(x+55.01,25,z);
-        circle2.rotation.y =  Math.PI / 2;
+        mesh4 = mesh3.clone();
+        mesh4.position.set(x+55.01,25,z);
+        mesh4.rotation.y =  Math.PI / 2;
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(mesh,mesh1,mesh2,circle1,circle2,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3,mesh4,Shadow);
         scene.add(group);
         return group;
     }
 
     function creatcube23(x,z) {
-        var geometryTop = new THREE.CubeGeometry( 100, 50, 100);
-        var materialTop = new THREE.MeshLambertMaterial( { color:0xffffff} );
-        meshTop = new THREE.Mesh( geometryTop,materialTop);
-        meshTop.position.set(x,25,z);
-        var geometryRight = new THREE.PlaneGeometry( 100, 50, 1, 1 );
-        var textureRight = new THREE.TextureLoader().load( "source/clock.png" );
-        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
-        meshRight = new THREE.Mesh( geometryRight,materialRight );
-        meshRight.rotation.y =  Math.PI / 2;
-        meshRight.position.set(x+50.01, 25,z);
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:0xffffff} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometry = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/clock.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.rotation.y =  Math.PI / 2;
+        mesh1.position.set(x+50.01, 25,z);
  
         var now = new Date();
         var h = now.getHours();
@@ -344,10 +366,10 @@
         var hArr = hStr.split("");
         var mStr =checkTime(m);
         var mArr = mStr.split(""); 
-        pic1 = creatTime(hArr[0], 1, x, z);
-        pic2 = creatTime(hArr[1], 2, x, z);
-        pic3 = creatTime(mArr[0], 3, x, z);
-        pic4 = creatTime(mArr[1], 4, x, z);
+        mesh2 = creatTime(hArr[0], 1, x, z);
+        mesh3 = creatTime(hArr[1], 2, x, z);
+        mesh4 = creatTime(mArr[0], 3, x, z);
+        mesh5 = creatTime(mArr[1], 4, x, z);
         function creatTime(h, n, x, z){
             var scr = "source/" + h + ".png";
             if (n == 1){
@@ -368,52 +390,85 @@
             var texture = new THREE.TextureLoader().load( scr );
             var material = new THREE.MeshLambertMaterial({map:texture});
             material.transparent = true;
-            mesh = new THREE.Mesh( geometry, material);
-            mesh.rotation.y =  Math.PI / 2;
-            mesh.position.set(x+50.02, 25, z+d);
-            return mesh;
+            mesh6 = new THREE.Mesh( geometry, material);
+            mesh6.rotation.y =  Math.PI / 2;
+            mesh6.position.set(x+50.02, 25, z+d);
+            return mesh6;
 	    }
 
-        var geometry1 = new THREE.CylinderGeometry(20, 20, 10, 100, 3, true);
-        var texture1 = new THREE.TextureLoader().load( "source/stripe.png" );
-        texture1.wrapS = THREE.RepeatWrapping;
-        texture1.wrapT = THREE.RepeatWrapping;
-        texture1.repeat.set( 2, 2 );
-        var material1 = new THREE.MeshLambertMaterial({map:texture1});
-        mesh1 = new THREE.Mesh(geometry1,material1);
-        mesh1.position.set(x,25,z+55);
-        mesh1.rotation.x =  -Math.PI / 2;
-        var geometry2 = new THREE.CircleGeometry( 20, 30 );
-        var texture2 = new THREE.TextureLoader().load( "source/stripe.png" );
-        texture2.wrapS = THREE.RepeatWrapping;
-        texture2.wrapT = THREE.RepeatWrapping;
-        var material2 = new THREE.MeshBasicMaterial( {map:texture2} );
-        material2.transparent = true;
-        var circle1 = new THREE.Mesh( geometry2, material2 );
-        circle1.position.set(x,25,z+60);
+        var geometry = new THREE.CylinderGeometry(20, 20, 10, 100, 3, true);
+        var texture = new THREE.TextureLoader().load( "source/stripe.png" );
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set( 2, 2 );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh7 = new THREE.Mesh(geometry,material);
+        mesh7.position.set(x,25,z+55);
+        mesh7.rotation.x =  -Math.PI / 2;
+        var geometry = new THREE.CircleGeometry( 20, 30 );
+        var texture = new THREE.TextureLoader().load( "source/stripe.png" );
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        material.transparent = true;
+        var mesh8 = new THREE.Mesh( geometry, material );
+        mesh8.position.set(x,25,z+60);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(meshTop,meshRight,pic1,pic2,pic3,pic4,mesh1,circle1,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3,mesh4,mesh5,mesh7,mesh8,Shadow);
         scene.add(group);
         return group;
     }
 
     function creatcube24(x,z) {
-        var geometry1 = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
-        var material1 = new THREE.MeshLambertMaterial({ color:0x686868});
-        mesh1 = new THREE.Mesh(geometry1,material1);
-        mesh1.position.set(x,45,z);
+        var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
+        var material = new THREE.MeshLambertMaterial({ color:0x686868});
+        mesh = new THREE.Mesh(geometry,material);
+        mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var texture = new THREE.TextureLoader().load( "source/record.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
-        texture.needsUpdate = true;
-        var circle = new THREE.Mesh( geometry, material );
-        circle.position.set(x,46,z);
-        circle.rotation.x =  -Math.PI / 2;
-        meshBelow = allPicThreeFace(x, z, "source/sing.png", 44)
+        // texture.needsUpdate = true;
+        var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.position.set(x,46,z);
+        mesh1.rotation.x =  -Math.PI / 2;
+
+        var texture = new THREE.TextureLoader().load(  "source/sing.png" );
+        var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0.34);//图片左下角
+        var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
+        var t3 = new THREE.Vector2(0.66,1);//图片右上角
+        var t0 = new THREE.Vector2(0,1);//图片左上角
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.rotation.x =  -Math.PI / 2;
+        mesh2.position.set(x,44,z);
+        var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0);
+        var t2 = new THREE.Vector2(0.65,0);
+        var t3 = new THREE.Vector2(0.65,0.333);
+        var t0 = new THREE.Vector2(0,0.333);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.position.set(x,44/2,z+50);
+        var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(1,0.36);
+        var t2 = new THREE.Vector2(1,1);
+        var t3 = new THREE.Vector2(0.666,1);
+        var t0 = new THREE.Vector2(0.666,0.36);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture}); 
+        mesh4 = new THREE.Mesh( geometry,material );
+        mesh4.rotation.y =  Math.PI / 2;
+        mesh4.position.set(x+50,44/2,z);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(meshBelow,mesh1,circle,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3,mesh4,Shadow);
         scene.add(group);
         return group;
     }
@@ -423,25 +478,25 @@
         var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,25,z);
-        var geometryRight = new THREE.PlaneGeometry( 66,33 );
-        var textureRight = new THREE.TextureLoader().load( "source/white_face.png" );
-        var materialRight = new THREE.MeshLambertMaterial({map:textureRight});
-        materialRight.transparent = true;
-        meshRight = new THREE.Mesh( geometryRight,materialRight );
-        meshRight.rotation.y =  Math.PI / 2;
-        meshRight.position.set(x+50.01,20,z);
+        var geometry = new THREE.PlaneGeometry( 66,33 );
+        var texture = new THREE.TextureLoader().load( "source/white_face.png" );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        material.transparent = true;
+        mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.rotation.y =  Math.PI / 2;
+        mesh1.position.set(x+50.01,20,z);
 
-        var geometry2 = new THREE.CubeGeometry( 40, 30, 15);
-        var material2 = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
-        var leg1 = new THREE.Mesh( geometry2,material2);
-        leg1.position.set(x+22,30,z+58);
-        leg1.rotation.x = - Math.PI / 4;
-        var leg2 = leg1.clone();
-        leg2.position.set(x+22,31,z+58-112);
-        leg2.rotation.x =  Math.PI / 4;
+        var geometry = new THREE.CubeGeometry( 40, 30, 15);
+        var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
+        var mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.position.set(x+22,30,z+58);
+        mesh2.rotation.x = - Math.PI / 4;
+        var mesh3 = mesh2.clone();
+        mesh3.position.set(x+22,31,z+58-112);
+        mesh3.rotation.x =  Math.PI / 4;
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(mesh,meshRight,leg1,leg2,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3,Shadow);
         scene.add(group);
         return group;
     }
@@ -453,41 +508,41 @@
         mesh.position.set(x,20,z);
 
         var texture = new THREE.TextureLoader().load( "source/gift.png" );
-        var geometryTop = new THREE.PlaneGeometry( 110, 110, 1, 1 );
-        geometryTop.faceVertexUvs[0] = [];
+        var geometry = new THREE.PlaneGeometry( 110, 110, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
         var t1 = new THREE.Vector2(0,0.25);//图片左下角
         var t2 = new THREE.Vector2(1,0.25);//图片右下角
         var t3 = new THREE.Vector2(1,1);//图片右上角
         var t0 = new THREE.Vector2(0,1);//图片左上角
-        geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
-        var materialTop = new THREE.MeshLambertMaterial({map:texture});
-        meshTop = new THREE.Mesh( geometryTop,materialTop );
-        meshTop.rotation.x =  -Math.PI / 2;
-        meshTop.position.set(x,50,z);
-        var geometryLeft = new THREE.PlaneGeometry( 110, 16, 1, 1 );
-        geometryLeft.faceVertexUvs[0] = [];
-        var l1 = new THREE.Vector2(0,0);
-        var l2 = new THREE.Vector2(1,0);
-        var l3 = new THREE.Vector2(1,0.25);
-        var l0 = new THREE.Vector2(0,0.25);
-        geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
-        var materialLeft = new THREE.MeshLambertMaterial({map:texture});
-        meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
-        meshLeft.position.set(x,45,z+55);
-        var geometryRight = new THREE.PlaneGeometry( 110, 16, 1, 1 );
-        geometryRight.faceVertexUvs[0] = [];
-        var r1 = new THREE.Vector2(0,0);
-        var r2 = new THREE.Vector2(1,0);
-        var r3 = new THREE.Vector2(1,0.25);
-        var r0 = new THREE.Vector2(0,0.25);
-        geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.rotation.x =  -Math.PI / 2;
+        mesh1.position.set(x,50,z);
+        var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0);
+        var t2 = new THREE.Vector2(1,0);
+        var t3 = new THREE.Vector2(1,0.25);
+        var t0 = new THREE.Vector2(0,0.25);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.position.set(x,42,z+55);
+        var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0);
+        var t2 = new THREE.Vector2(1,0);
+        var t3 = new THREE.Vector2(1,0.25);
+        var t0 = new THREE.Vector2(0,0.25);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
-        meshRight = new THREE.Mesh( geometryRight,materialRight );
-        meshRight.rotation.y =  Math.PI / 2;
-        meshRight.position.set(x+55,45,z);
+        mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.rotation.y =  Math.PI / 2;
+        mesh3.position.set(x+55,42,z);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
-        group.add(mesh,meshTop,meshLeft,meshRight,Shadow);
+        group.add(mesh,mesh1,mesh2,mesh3,Shadow);
         scene.add(group);
         return group;
     }
@@ -499,9 +554,9 @@
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,44,z);
 
-        var geometry1 = new THREE.CubeGeometry( 14, 48, 14);
-        var material1 = new THREE.MeshLambertMaterial({map:texture});
-        mesh1 = new THREE.Mesh( geometry1,material1);
+        var geometry = new THREE.CubeGeometry( 14, 48, 14);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh( geometry,material);
         mesh1.position.set(x-34,18,z+34);
         mesh1.rotation.x = - Math.PI / 20;
         mesh1.rotation.z = - Math.PI / 40;
@@ -528,10 +583,10 @@
         var material = new THREE.MeshLambertMaterial( { color:0x8e8e8e} );
         mesh = new THREE.Mesh( geometry,material);
         mesh.position.set(x,25,z);
-        var geometry2 = new THREE.PlaneGeometry( 100, 120 );
+        var geometry = new THREE.PlaneGeometry( 100, 120 );
         var texture = new THREE.TextureLoader().load( "source/disk.png" );
-        var material2 = new THREE.MeshBasicMaterial( {map:texture} );
-        var mesh1 = new THREE.Mesh( geometry2, material2 );
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
+        var mesh1 = new THREE.Mesh( geometry, material );
         mesh1.position.set(x,50.01,z);
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.rotation.z =  Math.PI / 2;
@@ -544,33 +599,33 @@
     }
 
     function creatdesk(x,z) {
-        var geometryUnder = new THREE.CylinderGeometry(50, 50, 6, 30);
-        var materialUnder = new THREE.MeshLambertMaterial({ color:0xafafaf});
-        deskUnder = new THREE.Mesh(geometryUnder,materialUnder );
-        deskUnder.position.set(x,47,z);
-        var geometryBelow = new THREE.CylinderGeometry(10, 30, 49, 30);
-        var materialBelow = new THREE.MeshLambertMaterial({ color:0x686868});
-        deskBelow = new THREE.Mesh(geometryBelow,materialBelow );
-        deskBelow.position.set(x,25,z);
+        var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
+        var material = new THREE.MeshLambertMaterial({ color:0xafafaf});
+        var mesh = new THREE.Mesh(geometry,material );
+        mesh.position.set(x,47,z);
+        var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
+        var material = new THREE.MeshLambertMaterial({ color:0x686868});
+        mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
-        group.add(deskUnder,deskBelow,Shadow);
+        group.add(mesh,mesh1,Shadow);
         scene.add(group);
         return group;
     }
     
     function creatdesk2(x,z) {
-        var geometryUnder = new THREE.CylinderGeometry(50, 50, 6, 30);
-        var materialUnder = new THREE.MeshLambertMaterial({ color:0x686868});
-        deskUnder = new THREE.Mesh(geometryUnder,materialUnder );
-        deskUnder.position.set(x,47,z);
-        var geometryBelow = new THREE.CylinderGeometry(10, 30, 49, 30);
-        var materialBelow = new THREE.MeshLambertMaterial({ color:0x979797});
-        deskBelow = new THREE.Mesh(geometryBelow,materialBelow );
-        deskBelow.position.set(x,25,z);
+        var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
+        var material = new THREE.MeshLambertMaterial({ color:0x686868});
+        mesh = new THREE.Mesh(geometry,material );
+        mesh.position.set(x,47,z);
+        var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
+        var material = new THREE.MeshLambertMaterial({ color:0x979797});
+        mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
-        group.add(deskUnder,deskBelow,Shadow);
+        group.add(mesh,mesh1,Shadow);
         scene.add(group);
         return group;
     }
@@ -586,57 +641,57 @@
     }
 
     function creatcup(x,z) {
-        var geometryUnder = new THREE.CylinderGeometry(30, 36, 10, 30, 3, true);
-        var materialUnder = new THREE.MeshLambertMaterial({ color:0x464646});
-        meshUnder = new THREE.Mesh(geometryUnder,materialUnder );
-        meshUnder.position.set(x,45,z);
+        var geometry = new THREE.CylinderGeometry(30, 36, 10, 30, 3, true);
+        var material = new THREE.MeshLambertMaterial({ color:0x464646});
+        mesh = new THREE.Mesh(geometry,material);
+        mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 30, 30 );
         var texture = new THREE.TextureLoader().load( "source/westore_desk.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
+        // texture.needsUpdate = true;
+        var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.position.set(x,50,z);
+        mesh1.rotation.x =  -Math.PI / 2;
+        mesh1.rotation.z =  Math.PI / 4;
+        var geometry = new THREE.CylinderGeometry(32, 20, 40, 30, 3, true);
+        var texture = new THREE.TextureLoader().load( "source/westore.png" );
+        var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
-        var circle = new THREE.Mesh( geometry, material );
-        circle.position.set(x,50,z);
-        circle.rotation.x =  -Math.PI / 2;
-        circle.rotation.z =  Math.PI / 4;
-        var geometryBelow = new THREE.CylinderGeometry(32, 20, 40, 30, 3, true);
-        var texture2 = new THREE.TextureLoader().load( "source/westore.png" );
-        var materialBelow = new THREE.MeshBasicMaterial( {map:texture2} );
-        texture2.needsUpdate = true;
-        meshBelow = new THREE.Mesh(geometryBelow,materialBelow );
-        meshBelow.position.set(x,20,z);
-        meshBelow.rotation.y =  -3* Math.PI / 4;
+        mesh2 = new THREE.Mesh(geometry,material );
+        mesh2.position.set(x,20,z);
+        mesh2.rotation.y =  -3* Math.PI / 4;
         Shadow =  makeShadow_cup(x,z);
         group = new THREE.Object3D();
-        group.add(meshUnder,meshBelow,circle,Shadow);
+        group.add(mesh,mesh1,mesh2,Shadow);
         scene.add(group);
         return group;
     }
 
     function creatGround(x,z,color){
-        var geometryTop = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
-        var materialTop = new THREE.MeshLambertMaterial({ color:color});
-        meshTop = new THREE.Mesh( geometryTop,materialTop );
-        meshTop.rotation.x =  -Math.PI / 2;
-        meshTop.position.set(x,-0.01,z);
-        scene.add(meshTop);
-        return meshTop;
+        var geometry = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var material = new THREE.MeshLambertMaterial({ color:color});
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.rotation.x =  -Math.PI / 2;
+        mesh.position.set(x,-0.01,z);
+        scene.add(mesh);
+        return mesh;
     }
 
     function topPlane_color(x,z,topcolor){
-        var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
-        var materialTop = new THREE.MeshLambertMaterial({ color:topcolor});
-        meshTop = new THREE.Mesh( geometryTop,materialTop );
-        meshTop.rotation.x =  -Math.PI / 2;
-        meshTop.position.set(x,50,z);
-        return meshTop;
+        var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+        var material = new THREE.MeshLambertMaterial({ color:topcolor});
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.rotation.x =  -Math.PI / 2;
+        mesh.position.set(x,50,z);
+        return mesh;
     }
 
     function makeShadow(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 116, 160, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 116, 160, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material);
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-30 , 0 , z+6 );
@@ -644,35 +699,23 @@
     }
 
     function makeShadow2(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 112, 180, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 112, 180, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material);
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-30 , 0 , z+8 );
         return meshShadow;
     }
 
-    function makeShadow_player(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 22, 60, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/player_shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({color:0xafafaf,map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
-        meshShadow.rotation.x =  -Math.PI / 2;
-        meshShadow.rotation.z =  Math.PI / 2 ;
-        meshShadow.position.set( x-28 , 50.02 , z );
-        return meshShadow;
-    }
-
     function makeShadow_cylinder(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 90, 130, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 90, 130, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material);
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-30 , 0 , z+8 );
@@ -680,11 +723,11 @@
     }
 
     function makeShadow_cup(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 50, 80, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 50, 80, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/cylinder_shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material );
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-30 , 0 , z+8 );
@@ -692,11 +735,11 @@
     }
 
     function makeShadow_desk(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 90, 140, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/desk_shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 90, 140, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/desk_shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material );
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-45 ,0 , z+5 );
@@ -704,11 +747,11 @@
     }
 
     function makeShadow_stool(x,z){
-        var geometryShadow = new THREE.PlaneGeometry( 100, 130, 1, 1 );
-        var textureShadow = new THREE.TextureLoader().load( "source/stool_shadow.png" );
-        var materialShadow = new THREE.MeshBasicMaterial({map:textureShadow});
-        materialShadow.transparent = true;
-        meshShadow = new THREE.Mesh( geometryShadow,materialShadow );
+        var geometry = new THREE.PlaneGeometry( 100, 130, 1, 1 );
+        var texture = new THREE.TextureLoader().load( "source/stool_shadow.png" );
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        material.transparent = true;
+        meshShadow = new THREE.Mesh( geometry,material);
         meshShadow.rotation.x =  -Math.PI / 2;
         meshShadow.rotation.z =  Math.PI / 2 ;
         meshShadow.position.set( x-36 ,0 , z+4 );
@@ -716,50 +759,45 @@
     }
 
     function canvasOneFace(x,z,texture,color) {
-            var geometry = new THREE.CubeGeometry( 100, 50, 100);
-            var material = new THREE.MeshLambertMaterial( { color:color} );
-            mesh = new THREE.Mesh( geometry,material);
-            mesh.position.set(x,25,z);
-            var geometryRight = new THREE.PlaneGeometry( 100,50 );
-            var materialRight = new THREE.MeshLambertMaterial({map:texture});
-            texture.needsUpdate = true;
-            meshRight = new THREE.Mesh( geometryRight,materialRight );
-            meshRight.rotation.y =  Math.PI / 2;
-            meshRight.position.set(x+50.01,25,z);
-            Shadow =  makeShadow();
-            Shadow.position.set( x-30 , 0 , z+8 );
-            group = new THREE.Object3D();
-            group.add(meshRight);
-            group.add(mesh);
-            group.add(Shadow);
-            scene.add(group);
-            return group;
-        }
+        var geometry = new THREE.CubeGeometry( 100, 50, 100);
+        var material = new THREE.MeshLambertMaterial( { color:color} );
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.position.set(x,25,z);
+        var geometry = new THREE.PlaneGeometry( 100,50 );
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        texture.needsUpdate = true;
+        mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.rotation.y =  Math.PI / 2;
+        mesh1.position.set(x+50.01,25,z);
+        Shadow =  makeShadow();
+        Shadow.position.set( x-30 , 0 , z+8 );
+        group = new THREE.Object3D();
+        group.add(mesh,mesh1,Shadow);
+        scene.add(group);
+        return group;
+    }
 
     function canvasTwoFace(x,z,texture,topColor){
-            var meshTop = topPlane_color(x,z,topColor);
-            var geometryLeft = new THREE.PlaneGeometry( 100, 50, 1, 1 );
-            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            var mesh = topPlane_color(x,z,topColor);
+            var geometry = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+            var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
-            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
-            meshLeft.position.set(x,25,z+50);
-            var meshRight = meshLeft.clone();
-            meshRight.rotation.y =  Math.PI / 2;
-            meshRight.position.set(x+50,25,z);
+            mesh1 = new THREE.Mesh( geometry,material);
+            mesh1.position.set(x,25,z+50);
+            var mesh2 = mesh1.clone();
+            mesh2.rotation.y =  Math.PI / 2;
+            mesh2.position.set(x+50,25,z);
             Shadow =  makeShadow();
             Shadow.position.set( x-30 ,0 , z+8 );
             group = new THREE.Object3D();
-            group.add(meshTop);
-            group.add(meshLeft);
-            group.add(meshRight);
-            group.add(Shadow);
+            group.add(mesh,mesh1,mesh2,Shadow);
             scene.add(group);
             return group;
     }
 
     function canvasTwoFace_circle(x,z,colorTop,colorTop2,color) {
-            var meshTop = topPlane_color(x,z,colorTop);
-            var geometryLeft = new THREE.PlaneGeometry( 100, 50, 1, 1 );
+            var mesh = topPlane_color(x,z,colorTop);
+            var geometry = new THREE.PlaneGeometry( 100, 50, 1, 1 );
             var canvas = document.createElement('canvas');
             canvas.width=100;
             canvas.height=50;
@@ -776,17 +814,17 @@
             ctx.fillStyle=colorTop2;
             ctx.fill();
             var texture = new THREE.Texture(canvas);
-            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
+            var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
-            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
-            meshLeft.position.set(x,25,z+50);
-            var meshRight = meshLeft.clone();
-            meshRight.rotation.y =  Math.PI / 2;
-            meshRight.position.set(x+50,25,z);
+            mesh1 = new THREE.Mesh( geometry,material );
+            mesh1.position.set(x,25,z+50);
+            var mesh2 = mesh1.clone();
+            mesh2.rotation.y =  Math.PI / 2;
+            mesh2.position.set(x+50,25,z);
             Shadow =  makeShadow();
             Shadow.position.set( x-30 , 0 , z+8 );
             group = new THREE.Object3D();
-            group.add(meshTop,meshLeft,meshRight,Shadow);
+            group.add(mesh,mesh1,mesh2,Shadow);
             scene.add(group);
             return group;
     }
@@ -828,13 +866,13 @@
     }
 
     function creatcylinder_canvas(x,z,colorTop,colorTop2,color,color2){
-        var geometry2 = new THREE.CylinderGeometry(40, 40, 44, 30, 3, true);
-        var material2 = new THREE.MeshLambertMaterial({ color:color2});
-        mesh2 = new THREE.Mesh(geometry2,material2 );
-        mesh2.position.set(x,22,z);
-        var geometry1 = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
-        var material1 = new THREE.MeshLambertMaterial({ color:color});
-        mesh1 = new THREE.Mesh(geometry1,material1);
+        var geometry = new THREE.CylinderGeometry(40, 40, 44, 30, 3, true);
+        var material = new THREE.MeshLambertMaterial({ color:color2});
+        mesh = new THREE.Mesh(geometry,material );
+        mesh.position.set(x,22,z);
+        var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
+        var material = new THREE.MeshLambertMaterial({ color:color});
+        mesh1 = new THREE.Mesh(geometry,material);
         mesh1.position.set(x,47,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var canvas = document.createElement('canvas');
@@ -856,62 +894,67 @@
         var texture = new THREE.Texture(canvas);
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
-        var circle = new THREE.Mesh( geometry, material );
-        circle.position.set(x,50,z);
-        circle.rotation.x =  -Math.PI / 2;
+        var mesh2 = new THREE.Mesh( geometry, material );
+        mesh2.position.set(x,50,z);
+        mesh2.rotation.x =  -Math.PI / 2;
         Shadow =  makeShadow_cylinder(x,z);
         group = new THREE.Object3D();
-        group.add(mesh1,mesh2,circle,Shadow);
+        group.add(mesh,mesh1,mesh2,Shadow);
         scene.add(group);
         return group;
     }
 
     function allPicThreeFace(x,z,picture,h) {
             var texture = new THREE.TextureLoader().load( picture );
-            var geometryTop = new THREE.PlaneGeometry( 100, 100, 1, 1 );
-            geometryTop.faceVertexUvs[0] = [];
+            var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+            geometry.faceVertexUvs[0] = [];
             var t1 = new THREE.Vector2(0,0.34);//图片左下角
             var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
             var t3 = new THREE.Vector2(0.66,1);//图片右上角
             var t0 = new THREE.Vector2(0,1);//图片左上角
-            geometryTop.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
-            var materialTop = new THREE.MeshLambertMaterial({map:texture});
-            meshTop = new THREE.Mesh( geometryTop,materialTop );
-            meshTop.rotation.x =  -Math.PI / 2;
-            meshTop.position.set(x,h,z);
-            var geometryLeft = new THREE.PlaneGeometry( 100, h, 1, 1 );
-            geometryLeft.faceVertexUvs[0] = [];
-            var l1 = new THREE.Vector2(0,0);
-            var l2 = new THREE.Vector2(0.65,0);
-            var l3 = new THREE.Vector2(0.65,0.333);
-            var l0 = new THREE.Vector2(0,0.333);
-            geometryLeft.faceVertexUvs[0].push([l0,l1,l3],[l1,l2,l3]);
-            var materialLeft = new THREE.MeshLambertMaterial({map:texture});
-            meshLeft = new THREE.Mesh( geometryLeft,materialLeft );
-            meshLeft.position.set(x,h/2,z+50);
-            var geometryRight = new THREE.PlaneGeometry( 100, h, 1, 1 );
-            geometryRight.faceVertexUvs[0] = [];
-            var r1 = new THREE.Vector2(1,0.36);
-            var r2 = new THREE.Vector2(1,1);
-            var r3 = new THREE.Vector2(0.666,1);
-            var r0 = new THREE.Vector2(0.666,0.36);
-            geometryRight.faceVertexUvs[0].push([r0,r1,r3],[r1,r2,r3]);
-            var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
-            meshRight = new THREE.Mesh( geometryRight,materialRight );
-            meshRight.rotation.y =  Math.PI / 2;
-            meshRight.position.set(x+50,h/2,z);
+            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var material = new THREE.MeshLambertMaterial({map:texture});
+            mesh = new THREE.Mesh( geometry,material);
+            mesh.rotation.x =  -Math.PI / 2;
+            mesh.position.set(x,h,z);
+            var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometry.faceVertexUvs[0] = [];
+            var t1 = new THREE.Vector2(0,0);
+            var t2 = new THREE.Vector2(0.65,0);
+            var t3 = new THREE.Vector2(0.65,0.333);
+            var t0 = new THREE.Vector2(0,0.333);
+            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var material = new THREE.MeshLambertMaterial({map:texture});
+            mesh1 = new THREE.Mesh( geometry,material);
+            mesh1.position.set(x,h/2,z+50);
+            var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
+            geometry.faceVertexUvs[0] = [];
+            var t1 = new THREE.Vector2(1,0.36);
+            var t2 = new THREE.Vector2(1,1);
+            var t3 = new THREE.Vector2(0.666,1);
+            var t0 = new THREE.Vector2(0.666,0.36);
+            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+            var material = new THREE.MeshLambertMaterial({map:texture}); 
+            mesh2 = new THREE.Mesh( geometry,material);
+            mesh2.rotation.y =  Math.PI / 2;
+            mesh2.position.set(x+50,h/2,z);
             Shadow =  makeShadow();
             Shadow.position.set( x-30 , 0 , z+8 );
             group = new THREE.Object3D();
-            group.add(meshTop, meshLeft, meshRight,Shadow);
+            group.add(mesh, mesh1, mesh2,Shadow);
             scene.add(group);
             return group;  
     }
 
     function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        width = document.body.clientWidth;
+        height = document.body.clientHeight;
+        camera.left = width / - 2;
+        camera.right = width /  2;
+        camera.top = height / 2;
+        camera.bottom = height /  -2;
         camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize( width,height );
     }
 
     function animate() {
