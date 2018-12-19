@@ -19,7 +19,6 @@
                 color: #464545;
                 font-size: 50px;
                 font-family: numjump;
-                
             }
             #gameOver {
                 position :absolute;
@@ -32,9 +31,7 @@
                 z-index: 9;
                 color: white;
                 text-align: center;
-                
             }
-      
     </style>
 </head>
 
@@ -53,9 +50,9 @@
     var stats;
 
     function threeStart() {
-                init();
-                animate();
-            }
+        init();
+        animate();
+    }
 
     var player;
     var point = 0;
@@ -108,11 +105,11 @@
         light2.castShadow = true;//开启灯光投射阴影
         light2.position.set(300,400,0);
         // light2.onlyShadow = true;
-        // light2.shadowDarkness = 0.6;
-        light2.shadow.mapSize.width = 1000;  // default 512
-        light2.shadow.mapSize.height = 1000 ; // default 512
-        light2.shadow.camera.near = 200;    // default 0.5
-        light2.shadow.camera.far = 600;     // default 500
+        light2.shadowDarkness = 0.6;
+        light2.shadow.mapSize.width = 2000;  // default 512
+        light2.shadow.mapSize.height = 2000 ; // default 512
+        light2.shadow.camera.near = 300;    // default 0.5
+        light2.shadow.camera.far = 700;     // default 500
         light2.shadow.camera.left = -500;
         light2.shadow.camera.right = 500;
         light2.shadow.camera.top = 500;
@@ -120,13 +117,35 @@
         // var helper = new THREE.CameraHelper( light2.shadow.camera );
         // scene.add( helper );
 
-        var ground = creatGround(0,0,0x8797a4)
-        mainmesh4 = creatcube04(0,0);
-        scene.add(mainmesh4);
+        var ground = creatGround(0,0,0x8797a4);
+        var boxNum = Math.floor(Math.random()*9); //0~boxCount-1
+        switch(boxNum)
+        {
+            case 0:mainmesh4 = creatcube10(0,0);break;
+            case 1:mainmesh4 = creatcube11(0,0);break;
+            case 2:mainmesh4 = creatcube12(0,0);break;
+            case 3:mainmesh4 = creatcube13(0,0);break;
+            case 4:mainmesh4 = creatcube14(0,0);break;
+            case 5:mainmesh4 = creatcube15(0,0);break;
+            case 6:mainmesh4 = creatcube16(0,0);break;
+            case 7:mainmesh4 = creatcube17(0,0);break;
+            case 8:mainmesh4 = creatcube18(0,0);break;
+        }
         mainmeshPosition4= new THREE.Vector3(0,0,0);
         buildDistance = 200;
-        mainmesh5 = creatcube02(0,-buildDistance);
-        scene.add(mainmesh5);
+        var boxNum = Math.floor(Math.random()*9); //0~boxCount-1
+        switch(boxNum)
+        {
+            case 0:mainmesh5 = creatcube10(0,-buildDistance);break;
+            case 1:mainmesh5 = creatcube11(0,-buildDistance);break;
+            case 2:mainmesh5 = creatcube12(0,-buildDistance);break;
+            case 3:mainmesh5 = creatcube13(0,-buildDistance);break;
+            case 4:mainmesh5 = creatcube14(0,-buildDistance);break;
+            case 5:mainmesh5 = creatcube15(0,-buildDistance);break;
+            case 6:mainmesh5 = creatcube16(0,-buildDistance);break;
+            case 7:mainmesh5 = creatcube17(0,-buildDistance);break;
+            case 8:mainmesh5 = creatcube18(0,-buildDistance);break;
+        }
         mainmeshPosition5= new THREE.Vector3(0,0,0);
         player = creatcubeplayer(0,-50,0);
         player.position.set(0,200,0);
@@ -142,13 +161,12 @@
         new TWEEN.Tween(Option)
                         .to({
                             py: 50,
-                        },600)
+                        },500)
                         .onUpdate(function() {
                             player.position.y = this.py;
                         })
                         .onComplete(function() {
                             var downTime = 0;
-                            
                             document.getElementById("canvas-frame").addEventListener("mousedown", function(){
                                 beStronger();
                                 bulingBulingDown();  
@@ -176,7 +194,7 @@
                         .to({
                             py: 36,
                             sy: 0.5,
-                        },800)
+                        },500)
                         .onUpdate(function() {
                             player.children[0].position.y = this.py;
                             player.children[1].scale.y = this.sy;
@@ -277,7 +295,7 @@
                         ps3: mainmeshPosition3.z+buildDistance,
                         ps4: mainmeshPosition4.z+buildDistance,
                         ps5: mainmeshPosition5.z+buildDistance,
-                    }, 800)
+                    }, 400)
                     .onUpdate(function() {
                         mainmesh1.position.z = this.ps1;
                         mainmesh2.position.z = this.ps2;
@@ -317,7 +335,7 @@
                         pz: playerPosition.z+buildDistance,
                         ps4: mainmeshPosition4.z+buildDistance,
                         ps5: mainmeshPosition5.z+buildDistance,
-                    }, 800)
+                    }, 400)
                     .onUpdate(function() {
                         mainmesh4.position.z = this.ps4;
                         mainmesh5.position.z = this.ps5;
@@ -353,7 +371,7 @@
                         ps3: mainmeshPosition3.z+buildDistance,
                         ps4: mainmeshPosition4.z+buildDistance,
                         ps5: mainmeshPosition5.z+buildDistance,
-                    }, 800)
+                    }, 400)
                     .onUpdate(function() {
                         mainmesh3.position.z = this.ps3;
                         mainmesh4.position.z = this.ps4;
@@ -375,7 +393,6 @@
                         console.log("mainmesh4",mainmesh4);
                         console.log("mainmesh5",mainmesh5);
                     })
-                    // .delay(1000)
                     .start();
         }
         else{
@@ -387,7 +404,7 @@
                         ps3: mainmeshPosition3.z+buildDistance,
                         ps4: mainmeshPosition4.z+buildDistance,
                         ps5: mainmeshPosition5.z+buildDistance,
-                    }, 800)
+                    }, 400)
                     .onUpdate(function() {
                         mainmesh2.position.z = this.ps2;
                         mainmesh3.position.z = this.ps3;
@@ -408,10 +425,8 @@
                         mainmesh4 = mainmesh5;
                         createBox();
                     })
-                    // .delay(1000)
                     .start();
         }
-        
     }
 
     function createBox() {  
@@ -488,8 +503,8 @@
     }
 
     function pointCount() { 
-        var over=document.getElementById("gameOver"); 
-        over.style.display = "block";
+        document.getElementById("gameOver").style.display = "block";
+        document.getElementById("point").style.display = "none"; 
     }
 
     function pointGet() { 
@@ -509,6 +524,7 @@
         var texture = new THREE.TextureLoader().load( "source/head.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material );
+        mesh.castShadow = true;
         mesh.position.set(x,y+106,z);
         mesh.castShadow = true;
         mesh.rotation.y =  Math.PI / 2;
@@ -517,6 +533,7 @@
         var texture3 = new THREE.TextureLoader().load( "source/head1.png" );
         var material3 = new THREE.MeshLambertMaterial({map:texture3});
         mesh3 = new THREE.Mesh( geometry3,material3 );
+        mesh3.castShadow = true;
         mesh3.position.set(x,y+78,z);
         mesh3.castShadow = true;
         mesh3.rotation.y =  Math.PI*7 / 10;
@@ -525,6 +542,7 @@
         var texture1 = new THREE.TextureLoader().load( "source/top.png" );
         var material1 = new THREE.MeshLambertMaterial({map:texture1});
         mesh1 = new THREE.Mesh(geometry1,material1 );
+        mesh1.castShadow = true;
         mesh1.position.set(x,y+80,z);
         mesh1.castShadow = true;
         mesh1.rotation.y = - Math.PI / 4;
@@ -533,6 +551,7 @@
         var texture2 = new THREE.TextureLoader().load( "source/bottom.png" );
         var material2 = new THREE.MeshLambertMaterial({map:texture2});
         mesh2 = new THREE.Mesh(geometry2,material2 );
+        mesh2.castShadow = true;
         mesh2.position.set(x,y+63,z);
         mesh2.castShadow = true;
         mesh2.rotation.y = - Math.PI / 3;
@@ -546,13 +565,14 @@
     }
 
     function creatGround(x,z,color){
-        var geometryTop = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
-        var materialTop = new THREE.MeshLambertMaterial({ color:color});
-        meshTop = new THREE.Mesh( geometryTop,materialTop );
-        meshTop.rotation.x =  -Math.PI / 2;
-        meshTop.position.set(x,-0.01,z);
-        scene.add(meshTop);
-        return meshTop;
+        var geometry = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var material = new THREE.MeshLambertMaterial({ color:color});
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.receiveShadow = true;
+        mesh.rotation.x =  -Math.PI / 2;
+        mesh.position.set(x,-0.01,z);
+        scene.add(mesh);
+        return mesh;
     }
 
     function creatcube10(x,z) {
@@ -634,11 +654,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xf64850} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 32,32 );
         var texture = new THREE.TextureLoader().load( "source/money.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
         mesh2.rotation.y =  Math.PI / 2;
         mesh2.position.set(x+50.01,25,z);
         Shadow =  makeShadow(x,z);
@@ -658,6 +680,7 @@
         var texture = new THREE.TextureLoader().load( "source/bag.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
@@ -675,18 +698,21 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0x64a934} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         geometry = new THREE.PlaneGeometry( 100,50 );
         var texture = new THREE.TextureLoader().load( "source/green_face.png" );
         material = new THREE.MeshLambertMaterial({map:texture});
         material.transparent = true;
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.rotation.y =  Math.PI / 2;
         mesh2.position.set(x+50.01,25,z);
 
         geometry = new THREE.CubeGeometry( 40, 30, 15);
         material = new THREE.MeshLambertMaterial( { color:0x64a934} );
         var mesh3 = new THREE.Mesh( geometry,material);
+        mesh3.receiveShadow = true;
         mesh3.position.set(x+22,31,z+58);
         mesh3.rotation.x = - Math.PI / 4;
         var mesh4 = mesh3.clone();
@@ -703,11 +729,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xd4c836} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
 
         geometry = new THREE.CylinderGeometry(20, 20, 10, 30, 3, true);
         material = new THREE.MeshLambertMaterial({ color:0xd4c836});
         mesh1 = new THREE.Mesh(geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z+55);
         mesh1.rotation.x =  -Math.PI / 2;
         var geometry = new THREE.PlaneGeometry( 20, 20 );
@@ -715,6 +743,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         material.transparent = true;
         var mesh3 = new THREE.Mesh( geometry, material );
+        mesh3.receiveShadow = true;
         mesh3.position.set(x,25,z+55.01);
 
         mesh2 = mesh1.clone();
@@ -734,11 +763,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xffffff} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100, 50, 1, 1 );
         var texture = new THREE.TextureLoader().load( "source/clock.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01, 25,z);
  
@@ -781,6 +812,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             material.transparent = true;
             mesh6 = new THREE.Mesh( geometry, material);
+            mesh6.receiveShadow = true;
             mesh6.rotation.y =  Math.PI / 2;
             mesh6.position.set(x+50.02, 25, z+d);
             return mesh6;
@@ -793,6 +825,7 @@
         texture.repeat.set( 2, 2 );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh7 = new THREE.Mesh(geometry,material);
+        mesh7.receiveShadow = true;
         mesh7.position.set(x,25,z+55);
         mesh7.rotation.x =  -Math.PI / 2;
         var geometry = new THREE.CircleGeometry( 20, 30 );
@@ -802,6 +835,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         material.transparent = true;
         var mesh8 = new THREE.Mesh( geometry, material );
+        mesh8.receiveShadow = true;
         mesh8.position.set(x,25,z+60);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
@@ -814,12 +848,14 @@
         var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh = new THREE.Mesh(geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var texture = new THREE.TextureLoader().load( "source/record.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         // texture.needsUpdate = true;
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,46,z);
         mesh1.rotation.x =  -Math.PI / 2;
 
@@ -833,6 +869,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.rotation.x =  -Math.PI / 2;
         mesh2.position.set(x,44,z);
         var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
@@ -844,6 +881,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.receiveShadow = true;
         mesh3.position.set(x,44/2,z+50);
         var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
         geometry.faceVertexUvs[0] = [];
@@ -854,6 +892,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture}); 
         mesh4 = new THREE.Mesh( geometry,material );
+        mesh4.receiveShadow = true;
         mesh4.rotation.y =  Math.PI / 2;
         mesh4.position.set(x+50,44/2,z);
         Shadow =  makeShadow(x,z);
@@ -867,18 +906,21 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 66,33 );
         var texture = new THREE.TextureLoader().load( "source/white_face.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         material.transparent = true;
         mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01,20,z);
 
         var geometry = new THREE.CubeGeometry( 40, 30, 15);
         var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
         var mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
         mesh2.position.set(x+22,30,z+58);
         mesh2.rotation.x = - Math.PI / 4;
         var mesh3 = mesh2.clone();
@@ -895,6 +937,7 @@
         var geometry = new THREE.CubeGeometry( 100, 40, 100);
         var material = new THREE.MeshLambertMaterial({color:0x9175cf});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,20,z);
 
         var texture = new THREE.TextureLoader().load( "source/gift.png" );
@@ -907,6 +950,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.position.set(x,50,z);
         var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
@@ -918,6 +962,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,42,z+55);
         var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
         geometry.faceVertexUvs[0] = [];
@@ -928,6 +973,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
         mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.receiveShadow = true;
         mesh3.rotation.y =  Math.PI / 2;
         mesh3.position.set(x+55,42,z);
         Shadow =  makeShadow(x,z);
@@ -942,11 +988,13 @@
         var texture = new THREE.TextureLoader().load( "source/stool.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,44,z);
 
         var geometry = new THREE.CubeGeometry( 14, 48, 14);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x-34,18,z+34);
         mesh1.rotation.x = - Math.PI / 20;
         mesh1.rotation.z = - Math.PI / 40;
@@ -972,11 +1020,13 @@
         var geometry = new THREE.CubeGeometry( 120, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0x8e8e8e} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100, 120 );
         var texture = new THREE.TextureLoader().load( "source/disk.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,50.01,z);
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.rotation.z =  Math.PI / 2;
@@ -992,10 +1042,12 @@
         var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
         var material = new THREE.MeshLambertMaterial({ color:0xafafaf});
         var mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,47,z);
         var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
@@ -1008,10 +1060,12 @@
         var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,47,z);
         var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x979797});
         mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
@@ -1034,12 +1088,14 @@
         var geometry = new THREE.CylinderGeometry(30, 36, 10, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:0x464646});
         mesh = new THREE.Mesh(geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 30, 30 );
         var texture = new THREE.TextureLoader().load( "source/westore_desk.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         // texture.needsUpdate = true;
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,50,z);
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.rotation.z =  Math.PI / 4;
@@ -1048,6 +1104,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
         mesh2 = new THREE.Mesh(geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,20,z);
         mesh2.rotation.y =  -3* Math.PI / 4;
         Shadow =  makeShadow_cup(x,z);
@@ -1061,6 +1118,7 @@
         var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
         var material = new THREE.MeshLambertMaterial({ color:topcolor});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.rotation.x =  -Math.PI / 2;
         mesh.position.set(x,50,z);
         return mesh;
@@ -1142,11 +1200,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:color} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100,50 );
         var material = new THREE.MeshLambertMaterial({map:texture});
         texture.needsUpdate = true;
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01,25,z);
         Shadow =  makeShadow();
@@ -1163,6 +1223,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
             mesh1 = new THREE.Mesh( geometry,material);
+            mesh1.receiveShadow = true;
             mesh1.position.set(x,25,z+50);
             var mesh2 = mesh1.clone();
             mesh2.rotation.y =  Math.PI / 2;
@@ -1197,6 +1258,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
             mesh1 = new THREE.Mesh( geometry,material );
+            mesh1.receiveShadow = true;
             mesh1.position.set(x,25,z+50);
             var mesh2 = mesh1.clone();
             mesh2.rotation.y =  Math.PI / 2;
@@ -1249,10 +1311,12 @@
         var geometry = new THREE.CylinderGeometry(40, 40, 44, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:color2});
         mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,22,z);
         var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:color});
         mesh1 = new THREE.Mesh(geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,47,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var canvas = document.createElement('canvas');
@@ -1275,6 +1339,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
         var mesh2 = new THREE.Mesh( geometry, material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,50,z);
         mesh2.rotation.x =  -Math.PI / 2;
         Shadow =  makeShadow_cylinder(x,z);
@@ -1288,13 +1353,14 @@
         var texture = new THREE.TextureLoader().load( picture );
         var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
         geometry.faceVertexUvs[0] = [];
-        var t1 = new THREE.Vector2(0,0.34);//图片左下角
-        var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
-        var t3 = new THREE.Vector2(0.66,1);//图片右上角
-        var t0 = new THREE.Vector2(0,1);//图片左上角
+        var t1 = new THREE.Vector2(0,0.34);
+        var t2 = new THREE.Vector2(0.66,0.34);
+        var t3 = new THREE.Vector2(0.66,1);
+        var t0 = new THREE.Vector2(0,1);
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.rotation.x =  -Math.PI / 2;
         mesh.position.set(x,h,z);
         var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
@@ -1306,6 +1372,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,h/2,z+50);
         var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
         geometry.faceVertexUvs[0] = [];
@@ -1316,6 +1383,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture}); 
         mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
         mesh2.rotation.y =  Math.PI / 2;
         mesh2.position.set(x+50,h/2,z);
         Shadow =  makeShadow();
@@ -1328,7 +1396,7 @@
 
     function onWindowResize() {
         width = document.getElementById('canvas-frame').clientWidth;
-        height = document.getElementById('canvas-frame').clientHeight;
+        // height = document.getElementById('canvas-frame').clientHeight;
         camera.left = width / - 2;
         camera.right = width /  2
         camera.updateProjectionMatrix();
