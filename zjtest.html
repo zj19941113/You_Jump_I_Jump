@@ -56,6 +56,7 @@
 
     var player;
     var point = 0;
+    var direction = 1; //1right 0left
     var playerPosition;
     var jumpDistance, buildDistance;
     var downtween;
@@ -168,6 +169,7 @@
                         .onComplete(function() {
                             var downTime = 0;
                             document.getElementById("canvas-frame").addEventListener("mousedown", function(){
+                                // console.log(buildDistance);
                                 beStronger();
                                 bulingBulingDown();  
                                 var now = new Date();
@@ -177,8 +179,9 @@
                                 downtween.stop();
                                 var now2 = new Date();
                                 upTime = now2.getTime();
-                                jumpDistance = Math.ceil((upTime - downTime)/100)<7? Math.ceil((upTime - downTime)/100)*30:7*30;
-                                jumpr(jumpDistance);
+                                jumpDistance = Math.ceil((upTime - downTime)/100)==1? 20:100+Math.round((upTime-downTime)/100)*20;
+                                // console.log(jumpDistance);
+                                jump(jumpDistance);
                             });
                         })
                         .easing(TWEEN.Easing.Bounce.Out) 
@@ -194,7 +197,7 @@
                         .to({
                             py: 36,
                             sy: 0.5,
-                        },500)
+                        },1050)
                         .onUpdate(function() {
                             player.children[0].position.y = this.py;
                             player.children[1].scale.y = this.sy;
@@ -203,8 +206,8 @@
                         .start();
     }
 
-    function jumpr(playerMoveLen) {
-        // if(!jumpr1 && !jumpr1){
+    function jump(playerMoveLen) {
+        if (direction == 1) {
             Option = { hpy:player.children[0].position.y,hsy:player.children[1].scale.y};
             jumpr1 = new TWEEN.Tween(Option)
                             .to({
@@ -229,51 +232,111 @@
                             })
                             .onComplete(function() {
                                 playerPosition.z = playerPosition.z -playerMoveLen;
-                                // console.log(player);
-                                console.log(-playerPosition.z,buildDistance);
                                 if(-playerPosition.z-buildDistance<=50&&-playerPosition.z-buildDistance>=-50){
-                                    // playerPosition.z -= jumpDistance;
                                     // 下个盒子上
                                     pointGet();
                                     changeCamera();
                                     bulingBulingUp();
-                                    console.log("下个盒子上");
+                                    // console.log("下个盒子上");
                                     
                                 }
                                 else if(-playerPosition.z<=50){
-                                    playerPosition.z -= -playerPosition.z;
                                     //本盒子上
                                     bulingBulingUp();
-                                    console.log("本盒子上");
+                                    // console.log("本盒子上");
                                     
                                 }
                                 else if(-playerPosition.z>50&&-playerPosition.z<62){
                                     //本盒子边上掉落
                                     gameOver(11);
-                                    console.log("本盒子边上掉落");
+                                    // console.log("本盒子边上掉落");
                                 }
                                 else if(-playerPosition.z-buildDistance<62&&-playerPosition.z-buildDistance>50){
                                     //下个盒子远边上掉落
                                     gameOver(22);
-                                    console.log("下个盒子远边上掉落");
+                                    // console.log("下个盒子远边上掉落");
                                 }
                                 else if(-playerPosition.z-buildDistance>-38&&-playerPosition.z-buildDistance<-50){
                                     //下个盒子近边上掉落
                                     gameOver(21);
-                                    console.log("下个盒子近边上掉落");
+                                    // console.log("下个盒子近边上掉落");
                                 }
                                 else{
                                     //竖直下落
                                     gameOver(0);
-                                    console.log("竖直下落");
+                                    // console.log("竖直下落");
                                 }
                             
                             })  
-                            // .easing(TWEEN.Easing.Sinusoidal.InOut) 
                             .interpolation( TWEEN.Interpolation.Bezier )
             jumpr1.chain(jumpr2);
-            // }
-        jumpr1.start();
+            jumpr1.start();
+        } 
+        else {
+            Option = { hpy:player.children[0].position.y,hsy:player.children[1].scale.y};
+            jumpr1 = new TWEEN.Tween(Option)
+                            .to({
+                                hpy:56,
+                                hsy:1,
+                            }, 50)
+                            .onUpdate(function() {
+                                player.children[0].position.y = this.hpy;
+                                player.children[1].scale.y = this.hsy;
+                            })
+            
+            Option = { py:0,px:playerPosition.x};
+            jumpr2 = new TWEEN.Tween(Option)
+                            .to({
+                                py: [150, 0],
+                                px: [playerPosition.x-playerMoveLen*0.5,playerPosition.x-playerMoveLen],
+                                // rz: [Math.PI, 0],
+                            }, 400)
+                            .onUpdate(function() {
+                                player.position.y = this.py+50;
+                                player.position.x = this.px;
+                            })
+                            .onComplete(function() {
+                                playerPosition.x = playerPosition.x -playerMoveLen;
+                                if(-playerPosition.x-buildDistance<=50&&-playerPosition.x-buildDistance>=-50){
+                                    // 下个盒子上
+                                    pointGet();
+                                    changeCamera();
+                                    bulingBulingUp();
+                                    // console.log("下个盒子上");
+                                    
+                                }
+                                else if(-playerPosition.x<=50){
+                                    //本盒子上
+                                    bulingBulingUp();
+                                    // console.log("本盒子上");
+                                    
+                                }
+                                else if(-playerPosition.x>50&&-playerPosition.x<62){
+                                    //本盒子边上掉落
+                                    gameOver(11);
+                                    // console.log("本盒子边上掉落");
+                                }
+                                else if(-playerPosition.x-buildDistance<62&&-playerPosition.x-buildDistance>50){
+                                    //下个盒子远边上掉落
+                                    gameOver(22);
+                                    // console.log("下个盒子远边上掉落");
+                                }
+                                else if(-playerPosition.x-buildDistance>-38&&-playerPosition.x-buildDistance<-50){
+                                    //下个盒子近边上掉落
+                                    gameOver(21);
+                                    // console.log("下个盒子近边上掉落");
+                                }
+                                else{
+                                    //竖直下落
+                                    gameOver(0);
+                                    // console.log("竖直下落");
+                                }
+                            
+                            })  
+                            .interpolation( TWEEN.Interpolation.Bezier )
+            jumpr1.chain(jumpr2);
+            jumpr1.start();
+        }       
 
     }
 
@@ -284,194 +347,394 @@
     }
 
     function changeCamera() { 
-        playerPosition.z = player.position.z;
-        if(mainmesh1&&mainmesh2&&mainmesh3&&mainmesh4&&mainmesh5){
-            Option = {pz:playerPosition.z,ps1:mainmeshPosition1.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
-            new TWEEN.Tween(Option)
-                    .to({
-                        pz: playerPosition.z+buildDistance,
-                        ps1: mainmeshPosition1.z+buildDistance,
-                        ps2: mainmeshPosition2.z+buildDistance,
-                        ps3: mainmeshPosition3.z+buildDistance,
-                        ps4: mainmeshPosition4.z+buildDistance,
-                        ps5: mainmeshPosition5.z+buildDistance,
-                    }, 400)
-                    .onUpdate(function() {
-                        mainmesh1.position.z = this.ps1;
-                        mainmesh2.position.z = this.ps2;
-                        mainmesh3.position.z = this.ps3;
-                        mainmesh4.position.z = this.ps4;
-                        mainmesh5.position.z = this.ps5;
-                        player.position.z =this.pz;                                       
-                    })
-                    .onComplete(function() {
-                        playerPosition.z +=buildDistance;
-                        mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
-                        mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
-                        mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
-                        mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
-                        mainmesh1.traverse(function (item) {
-                            if (item instanceof THREE.Mesh) {
-                                console.log("here");
-                                item.geometry.dispose(); 
-                                item.material.dispose(); 
-                            }
-                        });
-                        scene.remove(mainmesh1);
-                        mainmesh1 = mainmesh2;
-                        mainmesh2 = mainmesh3;
-                        mainmesh3 = mainmesh4;
-                        mainmesh4 = mainmesh5;
-                        createBox();
-                        console.log(scene);
-                    })
-                    .start();
+        var directionFlog = direction;
+        if (directionFlog == 1) {
+            playerPosition.z = player.position.z;
+            if(mainmesh1&&mainmesh2&&mainmesh3&&mainmesh4&&mainmesh5){
+                console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps1:mainmeshPosition1.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps1: mainmeshPosition1.z+buildDistance,
+                            ps2: mainmeshPosition2.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh1.position.z = this.ps1;
+                            mainmesh2.position.z = this.ps2;
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x;
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh1.traverse(function (item) {
+                                if (item instanceof THREE.Mesh) {
+                                    item.geometry.dispose(); 
+                                    item.material.dispose(); 
+                                }
+                            });
+                            scene.remove(mainmesh1);
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else if (!mainmesh3){
+                console.log(mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition3= new THREE.Vector3(0,0,0);
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+                
+            }
+            else if (!mainmesh2){
+                console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition2= new THREE.Vector3(0,0,0);
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else{
+                console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps2: mainmeshPosition2.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh2.position.z = this.ps2;
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition1= new THREE.Vector3(0,0,0);
+                            mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x;
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
         }
-        else if (!mainmesh3){
-            console.log(mainmeshPosition4.z,mainmeshPosition5.z,buildDistance);
-            Option = {pz:playerPosition.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
-            new TWEEN.Tween(Option)
-                    .to({
-                        pz: playerPosition.z+buildDistance,
-                        ps4: mainmeshPosition4.z+buildDistance,
-                        ps5: mainmeshPosition5.z+buildDistance,
-                    }, 400)
-                    .onUpdate(function() {
-                        mainmesh4.position.z = this.ps4;
-                        mainmesh5.position.z = this.ps5;
-                        player.position.z =this.pz;                                       
-                    })
-                    .onComplete(function() {
-                        playerPosition.z +=buildDistance;
-                        mainmeshPosition3= new THREE.Vector3(0,0,0);
-                        console.log(mainmeshPosition3.z,mainmeshPosition4.z,mainmeshPosition5.z,buildDistance); 
-                        mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
-                        console.log(mainmeshPosition3.z,mainmeshPosition4.z,mainmeshPosition5.z,buildDistance); 
-                        mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
-                        console.log(mainmeshPosition3.z,mainmeshPosition4.z,mainmeshPosition5.z,buildDistance); 
-                        mainmesh3 = mainmesh4;
-                        mainmesh4 = mainmesh5;
-                        createBox();
-                        console.log("mainmeshPosition3.z",mainmeshPosition3.z);
-                        console.log("mainmesh3",mainmesh3);
-                        console.log("mainmesh4",mainmesh4);
-                        console.log("mainmesh5",mainmesh5);
-                    })
-                    .start();
-            
-        }
-        else if (!mainmesh2){
-            console.log("mainmesh3",mainmesh3);
-            console.log("mainmesh4",mainmesh4);
-            console.log("mainmesh5",mainmesh5);
-            Option = {pz:playerPosition.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
-            new TWEEN.Tween(Option)
-                    .to({
-                        pz: playerPosition.z+buildDistance,
-                        ps3: mainmeshPosition3.z+buildDistance,
-                        ps4: mainmeshPosition4.z+buildDistance,
-                        ps5: mainmeshPosition5.z+buildDistance,
-                    }, 400)
-                    .onUpdate(function() {
-                        mainmesh3.position.z = this.ps3;
-                        mainmesh4.position.z = this.ps4;
-                        mainmesh5.position.z = this.ps5;
-                        player.position.z =this.pz;                                       
-                    })
-                    .onComplete(function() {
-                        playerPosition.z +=buildDistance;
-                        mainmeshPosition2= new THREE.Vector3(0,0,0);
-                        mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
-                        mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
-                        mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
-                        mainmesh2 = mainmesh3;
-                        mainmesh3 = mainmesh4;
-                        mainmesh4 = mainmesh5;
-                        createBox();
-                        console.log("mainmesh2",mainmesh2);
-                        console.log("mainmesh3",mainmesh3);
-                        console.log("mainmesh4",mainmesh4);
-                        console.log("mainmesh5",mainmesh5);
-                    })
-                    .start();
-        }
-        else{
-            Option = {pz:playerPosition.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
-            new TWEEN.Tween(Option)
-                    .to({
-                        pz: playerPosition.z+buildDistance,
-                        ps2: mainmeshPosition2.z+buildDistance,
-                        ps3: mainmeshPosition3.z+buildDistance,
-                        ps4: mainmeshPosition4.z+buildDistance,
-                        ps5: mainmeshPosition5.z+buildDistance,
-                    }, 400)
-                    .onUpdate(function() {
-                        mainmesh2.position.z = this.ps2;
-                        mainmesh3.position.z = this.ps3;
-                        mainmesh4.position.z = this.ps4;
-                        mainmesh5.position.z = this.ps5;
-                        player.position.z =this.pz;                                       
-                    })
-                    .onComplete(function() {
-                        playerPosition.z +=buildDistance;
-                        mainmeshPosition1= new THREE.Vector3(0,0,0);
-                        mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
-                        mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
-                        mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
-                        mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
-                        mainmesh1 = mainmesh2;
-                        mainmesh2 = mainmesh3;
-                        mainmesh3 = mainmesh4;
-                        mainmesh4 = mainmesh5;
-                        createBox();
-                    })
-                    .start();
+        else {
+            playerPosition.x = player.position.x;
+            if(mainmesh1&&mainmesh2&&mainmesh3&&mainmesh4&&mainmesh5){
+                console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps1:mainmeshPosition1.x,ps2:mainmeshPosition2.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps1: mainmeshPosition1.x+buildDistance,
+                            ps2: mainmeshPosition2.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh1.position.x = this.ps1;
+                            mainmesh2.position.x = this.ps2;
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x+buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z;
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh1.traverse(function (item) {
+                                if (item instanceof THREE.Mesh) {
+                                    item.geometry.dispose(); 
+                                    item.material.dispose(); 
+                                }
+                            });
+                            scene.remove(mainmesh1);
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else if (!mainmesh3){
+                console.log(mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x = this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition3= new THREE.Vector3(0,0,0);
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+                
+            }
+            else if (!mainmesh2){
+                console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition2= new THREE.Vector3(0,0,0);
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else{
+                console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps2:mainmeshPosition2.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps2: mainmeshPosition2.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh2.position.x = this.ps2;
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition1= new THREE.Vector3(0,0,0);
+                            mainmeshPosition1.x =mainmeshPosition2.x+buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z;
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
         }
     }
 
     function createBox() {  
         var boxCount = 28;
         var boxNum = Math.floor(Math.random()*boxCount); //0~boxCount-1
-        switch(boxNum)
-        {
-            case 0:mainmesh5 = creatcube10(0,-buildDistance);break;
-            case 1:mainmesh5 = creatcube11(0,-buildDistance);break;
-            case 2:mainmesh5 = creatcube12(0,-buildDistance);break;
-            case 3:mainmesh5 = creatcube13(0,-buildDistance);break;
-            case 4:mainmesh5 = creatcube14(0,-buildDistance);break;
-            case 5:mainmesh5 = creatcube15(0,-buildDistance);break;
-            case 6:mainmesh5 = creatcube16(0,-buildDistance);break;
-            case 7:mainmesh5 = creatcube17(0,-buildDistance);break;
-            case 8:mainmesh5 = creatcube18(0,-buildDistance);break;
-            case 9:mainmesh5 = creatcube21(0,-buildDistance);break;
-            case 10:mainmesh5 = creatcube22(0,-buildDistance);break;
-            case 11:mainmesh5 = creatcube23(0,-buildDistance);break;
-            case 12:mainmesh5 = creatcube24(0,-buildDistance);break;
-            case 13:mainmesh5 = creatcube25(0,-buildDistance);break;
-            case 14:mainmesh5 = creatcube26(0,-buildDistance);break;
-            case 15:mainmesh5 = creatcube27(0,-buildDistance);break;
-            case 16:mainmesh5 = creatcube01(0,-buildDistance);break;
-            case 17:mainmesh5 = creatcube02(0,-buildDistance);break;
-            case 18:mainmesh5 = creatcube03(0,-buildDistance);break;
-            case 19:mainmesh5 = creatcube04(0,-buildDistance);break;
-            case 20:mainmesh5 = creatcube05(0,-buildDistance);break;
-            case 21:mainmesh5 = creatcube06(0,-buildDistance);break;
-            case 22:mainmesh5 = creatcube07(0,-buildDistance);break;
-            case 23:mainmesh5 = creatdesk(0,-buildDistance);break;
-            case 24:mainmesh5 = creatdesk2(0,-buildDistance);break;
-            case 25:mainmesh5 = creatcylinder(0,-buildDistance);break;
-            case 26:mainmesh5 = creatcylinder2(0,-buildDistance);break;
-            case 27:mainmesh5 = creatcup(0,-buildDistance);break;
+        direction = Math.floor(Math.random()*2); //0~boxCount-1
+        buildDistance = 100+(1+Math.floor(Math.random()*7))*20; //140~380
+        if (direction == 1){
+            switch(boxNum)
+            {
+                case 0:mainmesh5 = creatcube10(0,-buildDistance);break;
+                case 1:mainmesh5 = creatcube11(0,-buildDistance);break;
+                case 2:mainmesh5 = creatcube12(0,-buildDistance);break;
+                case 3:mainmesh5 = creatcube13(0,-buildDistance);break;
+                case 4:mainmesh5 = creatcube14(0,-buildDistance);break;
+                case 5:mainmesh5 = creatcube15(0,-buildDistance);break;
+                case 6:mainmesh5 = creatcube16(0,-buildDistance);break;
+                case 7:mainmesh5 = creatcube17(0,-buildDistance);break;
+                case 8:mainmesh5 = creatcube18(0,-buildDistance);break;
+                case 9:mainmesh5 = creatcube21(0,-buildDistance);break;
+                case 10:mainmesh5 = creatcube22(0,-buildDistance);break;
+                case 11:mainmesh5 = creatcube23(0,-buildDistance);break;
+                case 12:mainmesh5 = creatcube24(0,-buildDistance);break;
+                case 13:mainmesh5 = creatcube25(0,-buildDistance);break;
+                case 14:mainmesh5 = creatcube26(0,-buildDistance);break;
+                case 15:mainmesh5 = creatcube27(0,-buildDistance);break;
+                case 16:mainmesh5 = creatcube01(0,-buildDistance);break;
+                case 17:mainmesh5 = creatcube02(0,-buildDistance);break;
+                case 18:mainmesh5 = creatcube03(0,-buildDistance);break;
+                case 19:mainmesh5 = creatcube04(0,-buildDistance);break;
+                case 20:mainmesh5 = creatcube05(0,-buildDistance);break;
+                case 21:mainmesh5 = creatcube06(0,-buildDistance);break;
+                case 22:mainmesh5 = creatcube07(0,-buildDistance);break;
+                case 23:mainmesh5 = creatdesk(0,-buildDistance);break;
+                case 24:mainmesh5 = creatdesk2(0,-buildDistance);break;
+                case 25:mainmesh5 = creatcylinder(0,-buildDistance);break;
+                case 26:mainmesh5 = creatcylinder2(0,-buildDistance);break;
+                case 27:mainmesh5 = creatcup(0,-buildDistance);break;
+            } 
+            mainmesh5.position.set(0,100,0);
+            mainmeshPosition5.z = 0;
+            new TWEEN.Tween(mainmesh5.position)
+                            .to({
+                                y: 0,
+                            },500)
+                            .easing(TWEEN.Easing.Bounce.Out) 
+                            .start();
         }
-        // mainmesh5 = creatcube25(0,-buildDistance);  
-        mainmesh5.position.set(0,100,0);
-        mainmeshPosition5.z = 0;
-        new TWEEN.Tween(mainmesh5.position)
-                        .to({
-                            y: 0,
-                        },500)
-                        .easing(TWEEN.Easing.Bounce.Out) 
-                        .start();
+        else {
+            switch(boxNum)
+            {
+                case 0:mainmesh5 = creatcube10(-buildDistance,0);break;
+                case 1:mainmesh5 = creatcube11(-buildDistance,0);break;
+                case 2:mainmesh5 = creatcube12(-buildDistance,0);break;
+                case 3:mainmesh5 = creatcube13(-buildDistance,0);break;
+                case 4:mainmesh5 = creatcube14(-buildDistance,0);break;
+                case 5:mainmesh5 = creatcube15(-buildDistance,0);break;
+                case 6:mainmesh5 = creatcube16(-buildDistance,0);break;
+                case 7:mainmesh5 = creatcube17(-buildDistance,0);break;
+                case 8:mainmesh5 = creatcube18(-buildDistance,0);break;
+                case 9:mainmesh5 = creatcube21(-buildDistance,0);break;
+                case 10:mainmesh5 = creatcube22(-buildDistance,0);break;
+                case 11:mainmesh5 = creatcube23(-buildDistance,0);break;
+                case 12:mainmesh5 = creatcube24(-buildDistance,0);break;
+                case 13:mainmesh5 = creatcube25(-buildDistance,0);break;
+                case 14:mainmesh5 = creatcube26(-buildDistance,0);break;
+                case 15:mainmesh5 = creatcube27(-buildDistance,0);break;
+                case 16:mainmesh5 = creatcube01(-buildDistance,0);break;
+                case 17:mainmesh5 = creatcube02(-buildDistance,0);break;
+                case 18:mainmesh5 = creatcube03(-buildDistance,0);break;
+                case 19:mainmesh5 = creatcube04(-buildDistance,0);break;
+                case 20:mainmesh5 = creatcube05(-buildDistance,0);break;
+                case 21:mainmesh5 = creatcube06(-buildDistance,0);break;
+                case 22:mainmesh5 = creatcube07(-buildDistance,0);break;
+                case 23:mainmesh5 = creatdesk(-buildDistance,0);break;
+                case 24:mainmesh5 = creatdesk2(-buildDistance,0);break;
+                case 25:mainmesh5 = creatcylinder(-buildDistance,0);break;
+                case 26:mainmesh5 = creatcylinder2(-buildDistance,0);break;
+                case 27:mainmesh5 = creatcup(-buildDistance,0);break;
+            } 
+            mainmesh5.position.set(0,100,0);
+            mainmeshPosition5.x = 0;
+            new TWEEN.Tween(mainmesh5.position)
+                            .to({
+                                y: 0,
+                            },500)
+                            .easing(TWEEN.Easing.Bounce.Out) 
+                            .start();
+        }
     }
 
     function gameOver(flog) {  
@@ -508,13 +771,24 @@
     }
 
     function pointGet() { 
-        if (jumpDistance-buildDistance==0){
-            point += 2;
+        if (direction == 1) {
+            if (playerPosition.z-buildDistance==0){
+                point += 2;
+            }
+            else{
+                point += 1;
+            }
         }
-        else{
-            point += 1;
+        else {
+            if (playerPosition.x-buildDistance==0){
+                point += 2;
+            }
+            else{
+                point += 1;
+            }
         }
-        console.log(point);
+        
+        // console.log(point);
         document.getElementById("point").innerHTML=point;
         document.getElementById("pointtotal").innerHTML=point;
     }
