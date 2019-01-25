@@ -1,168 +1,928 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title></title>
+    <title>You_Jump_I_Jump</title>
     <meta charset="utf-8">
+    <meta name="author" content="zhoujie">
     <style>
-        body {
-            margin: 0px;
-            /* background-color: #8797a4; */
-            overflow: hidden;
+        @font-face{font-family: 'numjump';src : url('source/num.ttf');}
+        body{
+            margin: 0;
         }
-        #info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-			}
+        #canvas-frame {
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 600px;
+            -webkit-touch-callout:none;
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            -ms-user-select:none;
+            user-select:none; 
+        }
+        #point {
+            position :absolute;
+            left :120px;
+            top :80px;
+            color: #464545;
+            font-size: 50px;
+            font-family: numjump;
+        }
+        #gameBegin {
+            position :absolute;
+            top :0px;
+            width: 100%;
+            height: 600px;
+            background-color:rgba(0,0,0,0.4);
+            z-index: 9;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items:center;
+            }
+        #gameOver {
+            position :absolute;
+            left :0px;
+            top :0px;
+            width: 100%;
+            height: 600px;
+            background-color:rgba(0,0,0,0.6);
+            display:none;
+            z-index: 9;
+            color: white;
+            text-align: center;
+            }
+            
     </style>
 </head>
-<body>
 
 <script src="build/three.js"></script>
-<script src="js/controls/OrbitControls.js"></script>
 <script src="js/WebGL.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/tween.min.js"></script>
+<script src="jquery/jquery-3.3.1.js"></script>
+<!-- <script src="js/controls/OrbitControls.js"></script> -->
 
 <script>
+    document.oncontextmenu=function(e){
+        //或者return false;
+        e.preventDefault();
+    };
 
     if ( WEBGL.isWebGLAvailable() === false ) {
     document.body.appendChild( WEBGL.getWebGLErrorMessage() );
     }
     
-    var camera, controls, scene, renderer;
+    // var camera,  scene, controls, renderer;
+    var camera,  scene, renderer;
+    var stats;
 
-    init();
-    animate();
+    function threeStart() {
+        init();
+        animate();
+    }
+
+    var player;
+    var point = 0;
+    var direction = 1; //1right 0left
+    var playerPosition;
+    var jumpDistance, buildDistance;
+    var downtween;
+    var mainmesh1,mainmesh2,mainmesh3,mainmesh4,mainmesh5;
+    var mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5;
 
     function init() {
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0x8797a4 );
-		// scene.fog = new THREE.FogExp2( 0x8797a4, 0.002 );  
 
+        width = document.getElementById('canvas-frame').clientWidth;
+        height = document.getElementById('canvas-frame').clientHeight;
+		
         renderer = new THREE.WebGLRenderer({ antialias: true } );
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.shadowMapEnabled = true;//开启阴影，加上阴影渲染
-        document.body.appendChild( renderer.domElement );
+        // renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(width, height );
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-frame').appendChild( renderer.domElement );
 
-        // camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -1000, 2000 );
-        camera.position.set( 200 , 180 , 200 );
-        camera.lookAt({ x : 0,y : 0,z : 0});
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.right = '8px';
+        stats.domElement.style.top = '8px';
+        document.getElementById('canvas-frame').appendChild( stats.domElement );
+ 
+        camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 2000 );
+        camera.position.set( 200 , 165 , 150 );
+        camera.lookAt(new THREE.Vector3(0,0,0));
 
-        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        // controls = new THREE.OrbitControls( camera, renderer.domElement );
+        // //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+        // controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        // controls.dampingFactor = 0.25;
+        // controls.screenSpacePanning = false;
+        // controls.minDistance = 100;
+        // controls.maxDistance = 500;
+        // controls.maxPolarAngle = Math.PI / 2;
 
-        //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
-
-        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-        controls.dampingFactor = 0.25;
-
-        controls.screenSpacePanning = false;
-
-        controls.minDistance = 100;
-        controls.maxDistance = 500;
-
-        controls.maxPolarAngle = Math.PI / 2;
-
-        light = new THREE.AmbientLight( 0xFFFFFF,0.4 );
+        light = new THREE.AmbientLight( 0xFFFFFF,0.7);
         scene.add( light );
+        // light3 = new THREE.DirectionalLight( 0xFFFFFF,0.2);
+        // // light2.position.set(0,400,0);
+        // scene.add( light3 );
 
-        light2 = new THREE.DirectionalLight(0xFFFFFF,1);
-        light2.position.set(3,4,2);
+        light2 = new THREE.DirectionalLight(0xFFFFFF,0.4);
         light2.castShadow = true;//开启灯光投射阴影
+        light2.position.set(300,400,0);
+        // light2.onlyShadow = true;
+        light2.shadowDarkness = 0.6;
+        light2.shadow.mapSize.width = 2000;  // default 512
+        light2.shadow.mapSize.height = 2000 ; // default 512
+        light2.shadow.camera.near = 300;    // default 0.5
+        light2.shadow.camera.far = 700;     // default 500
+        light2.shadow.camera.left = -500;
+        light2.shadow.camera.right = 500;
+        light2.shadow.camera.top = 500;
+        light2.shadow.camera.bottom = -500;
+        // var helper = new THREE.CameraHelper( light2.shadow.camera );
+        // scene.add( helper );
+
+        var ground = creatGround(0,0,0x8797a4);
+        var boxNum = Math.floor(Math.random()*9); //0~boxCount-1
+        switch(boxNum)
+        {
+            case 0:mainmesh4 = creatcube10(0,0);break;
+            case 1:mainmesh4 = creatcube11(0,0);break;
+            case 2:mainmesh4 = creatcube12(0,0);break;
+            case 3:mainmesh4 = creatcube13(0,0);break;
+            case 4:mainmesh4 = creatcube14(0,0);break;
+            case 5:mainmesh4 = creatcube15(0,0);break;
+            case 6:mainmesh4 = creatcube16(0,0);break;
+            case 7:mainmesh4 = creatcube17(0,0);break;
+            case 8:mainmesh4 = creatcube18(0,0);break;
+        }
+        mainmeshPosition4= new THREE.Vector3(0,0,0);
+        buildDistance = 200;
+        var boxNum = Math.floor(Math.random()*9); //0~boxCount-1
+        switch(boxNum)
+        {
+            case 0:mainmesh5 = creatcube10(0,-buildDistance);break;
+            case 1:mainmesh5 = creatcube11(0,-buildDistance);break;
+            case 2:mainmesh5 = creatcube12(0,-buildDistance);break;
+            case 3:mainmesh5 = creatcube13(0,-buildDistance);break;
+            case 4:mainmesh5 = creatcube14(0,-buildDistance);break;
+            case 5:mainmesh5 = creatcube15(0,-buildDistance);break;
+            case 6:mainmesh5 = creatcube16(0,-buildDistance);break;
+            case 7:mainmesh5 = creatcube17(0,-buildDistance);break;
+            case 8:mainmesh5 = creatcube18(0,-buildDistance);break;
+        }
+        mainmeshPosition5= new THREE.Vector3(0,0,0);
+        player = creatcubeplayer(0,-50,0);
+        player.position.set(0,200,0);
+        playerPosition = new THREE.Vector3(0,0,0);
+        // var playerHelper = new THREE.BoxHelper( player );
+        // scene.add( playerHelper );
+        scene.add(player);  
+        // console.log(player);
+        // light2.target = player.children[1];
         scene.add(light2);
 
-        ground = creatGround(0,0,0x8797a4)
+        var Option = { py: player.position.y};
+        new TWEEN.Tween(Option)
+                        .to({
+                            py: 50,
+                        },500)
+                        .onUpdate(function() {
+                            player.position.y = this.py;
+                        })
+                        .onComplete(function() {
 
-        // color:bai lv #ffffff #649569
-        // color:bai hui #ffffff #979797
-        // color:qianhui shenhui #afafaf #686868
-        // color:wechatlv #64a934
-        // meshTop.position.set(x,y+50,z);
-        // meshLeft.position.set(x,y+25,z+50);
-        // meshRight.position.set(x+50,y+25,z);
-        // material2.transparent = true;
+                            var flag = IsPC(); 
+                            // console.log(flag)//true为PC端，false为手机端和ipad
 
-        // 玩家
-        // player = creatcubeplayer(-150,0);
+                            if (flag == true){
+                                var downTime = 0;
+                                document.getElementById("canvas-frame").addEventListener("mousedown", function(){
+                                    // console.log(buildDistance);
+                                    beStronger();
+                                    bulingBulingDown();  
+                                    var now = new Date();
+                                    downTime = now.getTime();
+                                });
+                                document.getElementById("canvas-frame").addEventListener("mouseup", function(){                   
+                                    downtween.stop();
+                                    var now2 = new Date();
+                                    upTime = now2.getTime();
+                                    jumpDistance = Math.ceil((upTime - downTime)/100)==1? 20:100+Math.round((upTime-downTime)/100)*20;
+                                    // console.log(jumpDistance);
+                                    jump(jumpDistance);
+                                });
+                            } 
+                            else {
+                                document.getElementById("canvas-frame").addEventListener("touchstart", function(){
+                                // console.log(buildDistance);
+                                    beStronger();
+                                    bulingBulingDown();  
+                                    var now = new Date();
+                                    downTime = now.getTime();
+                                });
+                                document.getElementById("canvas-frame").addEventListener("touchend", function(){                   
+                                    downtween.stop();
+                                    var now2 = new Date();
+                                    upTime = now2.getTime();
+                                    jumpDistance = Math.ceil((upTime - downTime)/100)==1? 20:100+Math.round((upTime-downTime)/100)*20;
+                                    // console.log(jumpDistance);
+                                    jump(jumpDistance);
+                                });
+                            }                   
 
-        //条纹box 9
-        cube10 = creatcube10(-450,0);
-        cube11 = creatcube11(-150,0);
-        cube12 = creatcube12(-300,0);
-        cube13 = creatcube13(-300,-150);
-        cube14 = creatcube14(-450,-150);
-        cube15 = creatcube15(-600,0);
-        cube16 = creatcube16(-750,0);
-        cube17 = creatcube17(-750,-150);
-        cube18 = creatcube18(-150,-150);
-
-        //异形box 7
-        cube21 = creatcube21(0,-450);
-        cube22 = creatcube22(-150,-450);
-        cube23 = creatcube23(-300,-450);
-        cube24 = creatcube24(-450,-450);
-        cube25 = creatcube25(-600,-450);
-        cube26 = creatcube26(-750,-450);
-        cube27 = creatcube27(-900,-450);
-        
-        //贴图box 7
-        cube01 = creatcube01(0,-300);
-        cube02 = creatcube02(-150,-300);
-        cube03 = creatcube03(-300,-300);
-        cube04 = creatcube04(-450,-300);
-        cube05 = creatcube05(-600,-300);
-        cube06 = creatcube06(-750,-300);
-        cube07 = creatcube07(-900,-300);
-        
-        //柱状体 5
-        desk = creatdesk(0,-600);
-        desk2 = creatdesk2(-150,-600);
-        cylinder = creatcylinder(-300,-600);
-        cylinder2 = creatcylinder2(-450,-600);
-        cup = creatcup(-600,-600);
-
-        cube01 = creatcube01(0,0);
-        player = creatcubeplayer(0,0);
-        console.log(scene);
-
+                        })
+                        .easing(TWEEN.Easing.Bounce.Out) 
+                        .delay(500)
+                        .start();   
 
         window.addEventListener( 'resize', onWindowResize, false );
     }
 
-    function creatcubeplayer(x,z) {
+    function IsPC() {
+        var userAgentInfo = navigator.userAgent;
+        var Agents = ["Android", "iPhone",
+                    "SymbianOS", "Windows Phone",
+                    "iPad", "iPod"];
+        var flag = true;
+        for (var v = 0; v < Agents.length; v++) {
+            if (userAgentInfo.indexOf(Agents[v]) > 0) {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    function beStronger() {    
+        Option = { py: player.children[0].position.y,sy: player.children[1].scale.y,sx: player.children[1].scale.x,sz: player.children[1].scale.z,};
+        downtween = new TWEEN.Tween(Option)
+                        .to({
+                            py: 36,
+                            sy: 0.5,
+                            sx: 1.5,
+                            sz: 1.5,
+                        },1050)
+                        .onUpdate(function() {
+                            player.children[0].position.y = this.py;
+                            player.children[1].scale.y = this.sy;
+                            player.children[1].scale.x = this.sx;
+                            player.children[1].scale.z = this.sz;
+                        })
+                        .interpolation( TWEEN.Interpolation.Bezier )
+                        .start();
+    }
+
+    function jump(playerMoveLen) {
+        console.log(jumpDistance, buildDistance,playerPosition,player.position);
+        if (direction == 1) {
+            Option = { hpy:player.children[0].position.y,hsy:player.children[1].scale.y,hsx:player.children[1].scale.x,hsz:player.children[1].scale.z};
+            jumpr1 = new TWEEN.Tween(Option)
+                            .to({
+                                hpy:56,
+                                hsy:1,
+                                hsx:1,
+                                hsz:1,
+                            }, 50)
+                            .onUpdate(function() {
+                                player.children[0].position.y = this.hpy;
+                                player.children[1].scale.y = this.hsy;
+                                player.children[1].scale.x = this.hsx;
+                                player.children[1].scale.z = this.hsz;
+                            })
+            
+            Option = { px:playerPosition.x ,py:0,pz:playerPosition.z};
+            jumpr2 = new TWEEN.Tween(Option)
+                            .to({
+                                px:[playerPosition.x*0.5,0],
+                                py: [150, 0],
+                                pz: [playerPosition.z-playerMoveLen*0.5,playerPosition.z-playerMoveLen],
+                                // rz: [Math.PI, 0],
+                            }, 400)
+                            .onUpdate(function() {
+                                player.position.x = this.px;
+                                player.position.y = this.py+50;
+                                player.position.z = this.pz;
+                            })
+                            .onComplete(function() {
+                                playerPosition.x = 0;
+                                playerPosition.z = playerPosition.z -playerMoveLen;
+                                if(-playerPosition.z-buildDistance<=50&&-playerPosition.z-buildDistance>=-50){
+                                    // 下个盒子上
+                                    pointGet();
+                                    changeCamera();
+                                    bulingBulingUp();
+                                    // console.log("下个盒子上");
+                                    
+                                }
+                                else if(-playerPosition.z<=50){
+                                    //本盒子上
+                                    bulingBulingUp();
+                                    // console.log("本盒子上");
+                                    
+                                }
+                                else if(-playerPosition.z>50&&-playerPosition.z<62){
+                                    //本盒子边上掉落
+                                    gameOver(11);
+                                    // console.log("本盒子边上掉落");
+                                }
+                                else if(-playerPosition.z-buildDistance<62&&-playerPosition.z-buildDistance>50){
+                                    //下个盒子远边上掉落
+                                    gameOver(22);
+                                    // console.log("下个盒子远边上掉落");
+                                }
+                                else if(-playerPosition.z-buildDistance>-38&&-playerPosition.z-buildDistance<-50){
+                                    //下个盒子近边上掉落
+                                    gameOver(21);
+                                    // console.log("下个盒子近边上掉落");
+                                }
+                                else{
+                                    //竖直下落
+                                    gameOver(0);
+                                    // console.log("竖直下落");
+                                }
+                                console.log(playerPosition,player.position);
+                            
+                            })  
+                            .interpolation( TWEEN.Interpolation.Bezier )
+            jumpr1.chain(jumpr2);
+            jumpr1.start();
+        } 
+        else {
+            Option = { hpy:player.children[0].position.y,hsy:player.children[1].scale.y,hsx:player.children[1].scale.x,hsz:player.children[1].scale.z};
+            jumpr1 = new TWEEN.Tween(Option)
+                            .to({
+                                hpy:56,
+                                hsy:1,
+                                hsx:1,
+                                hsz:1,
+                            }, 50)
+                            .onUpdate(function() {
+                                player.children[0].position.y = this.hpy;
+                                player.children[1].scale.y = this.hsy;
+                                player.children[1].scale.x = this.hsx;
+                                player.children[1].scale.z = this.hsz;
+                            })
+            
+            Option = { py:0,px:playerPosition.x,pz:playerPosition.z};
+            jumpr2 = new TWEEN.Tween(Option)
+                            .to({
+                                py: [150, 0],
+                                px: [playerPosition.x-playerMoveLen*0.5,playerPosition.x-playerMoveLen],
+                                pz:[playerPosition.z*0.5,0],
+                                // rz: [Math.PI, 0],
+                            }, 400)
+                            .onUpdate(function() {
+                                player.position.y = this.py+50;
+                                player.position.x = this.px;
+                                player.position.z = this.pz;
+                                
+                            })
+                            .onComplete(function() {
+                                playerPosition.z = 0;
+                                playerPosition.x = playerPosition.x -playerMoveLen;
+                                if(-playerPosition.x-buildDistance<=50&&-playerPosition.x-buildDistance>=-50){
+                                    // 下个盒子上
+                                    pointGet();
+                                    changeCamera();
+                                    bulingBulingUp();
+                                    // console.log("下个盒子上");
+                                    
+                                }
+                                else if(-playerPosition.x<=50){
+                                    //本盒子上
+                                    bulingBulingUp();
+                                    // console.log("本盒子上");
+                                    
+                                }
+                                else if(-playerPosition.x>50&&-playerPosition.x<62){
+                                    //本盒子边上掉落
+                                    gameOver(11);
+                                    // console.log("本盒子边上掉落");
+                                }
+                                else if(-playerPosition.x-buildDistance<62&&-playerPosition.x-buildDistance>50){
+                                    //下个盒子远边上掉落
+                                    gameOver(22);
+                                    // console.log("下个盒子远边上掉落");
+                                }
+                                else if(-playerPosition.x-buildDistance>-38&&-playerPosition.x-buildDistance<-50){
+                                    //下个盒子近边上掉落
+                                    gameOver(21);
+                                    // console.log("下个盒子近边上掉落");
+                                }
+                                else{
+                                    //竖直下落
+                                    gameOver(0);
+                                    // console.log("竖直下落");
+                                }
+                            
+                            })  
+                            .interpolation( TWEEN.Interpolation.Bezier )
+            jumpr1.chain(jumpr2);
+            jumpr1.start();
+        }       
+
+    }
+
+    function bulingBulingDown() {    
+    }
+
+    function bulingBulingUp() {    
+    }
+
+    function changeCamera() { 
+        var directionFlog = direction;
+        if (directionFlog == 1) {
+            playerPosition.z = player.position.z;
+            if(mainmesh1&&mainmesh2&&mainmesh3&&mainmesh4&&mainmesh5){
+                // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps1:mainmeshPosition1.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps1: mainmeshPosition1.z+buildDistance,
+                            ps2: mainmeshPosition2.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh1.position.z = this.ps1;
+                            mainmesh2.position.z = this.ps2;
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x;
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            deleteGroup(mainmesh1);
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else if (!mainmesh3){
+                // console.log(mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition3= new THREE.Vector3(0,0,0);
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+                
+            }
+            else if (!mainmesh2){
+                // console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition2= new THREE.Vector3(0,0,0);
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else{
+                // console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {pz:playerPosition.z,ps2:mainmeshPosition2.z,ps3:mainmeshPosition3.z,ps4:mainmeshPosition4.z,ps5:mainmeshPosition5.z};
+                new TWEEN.Tween(Option)
+                        .to({
+                            pz: playerPosition.z+buildDistance,
+                            ps2: mainmeshPosition2.z+buildDistance,
+                            ps3: mainmeshPosition3.z+buildDistance,
+                            ps4: mainmeshPosition4.z+buildDistance,
+                            ps5: mainmeshPosition5.z+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh2.position.z = this.ps2;
+                            mainmesh3.position.z = this.ps3;
+                            mainmesh4.position.z = this.ps4;
+                            mainmesh5.position.z = this.ps5;
+                            player.position.z =this.pz;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.z +=buildDistance;
+                            mainmeshPosition1= new THREE.Vector3(0,0,0);
+                            mainmeshPosition1.z =mainmeshPosition2.z+buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x;
+                            mainmeshPosition2.z =mainmeshPosition3.z+buildDistance;
+                            mainmeshPosition2.x =mainmeshPosition3.x;
+                            mainmeshPosition3.z =mainmeshPosition4.z+buildDistance;
+                            mainmeshPosition3.x =mainmeshPosition4.x;
+                            mainmeshPosition4.z =mainmeshPosition5.z+buildDistance;
+                            mainmeshPosition4.x =mainmeshPosition5.x;
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+        }
+        else {
+            playerPosition.x = player.position.x;
+            if(mainmesh1&&mainmesh2&&mainmesh3&&mainmesh4&&mainmesh5){
+                // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps1:mainmeshPosition1.x,ps2:mainmeshPosition2.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps1: mainmeshPosition1.x+buildDistance,
+                            ps2: mainmeshPosition2.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh1.position.x = this.ps1;
+                            mainmesh2.position.x = this.ps2;
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition1.x =mainmeshPosition2.x+buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z;
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            deleteGroup(mainmesh1);
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else if (!mainmesh3){
+                // console.log(mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x = this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition3= new THREE.Vector3(0,0,0);
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+                
+            }
+            else if (!mainmesh2){
+                // console.log(mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition2= new THREE.Vector3(0,0,0);
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+            else{
+                // console.log(mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                Option = {px:playerPosition.x,ps2:mainmeshPosition2.x,ps3:mainmeshPosition3.x,ps4:mainmeshPosition4.x,ps5:mainmeshPosition5.x};
+                new TWEEN.Tween(Option)
+                        .to({
+                            px: playerPosition.x+buildDistance,
+                            ps2: mainmeshPosition2.x+buildDistance,
+                            ps3: mainmeshPosition3.x+buildDistance,
+                            ps4: mainmeshPosition4.x+buildDistance,
+                            ps5: mainmeshPosition5.x+buildDistance,
+                        }, 400)
+                        .onUpdate(function() {
+                            mainmesh2.position.x = this.ps2;
+                            mainmesh3.position.x = this.ps3;
+                            mainmesh4.position.x = this.ps4;
+                            mainmesh5.position.x = this.ps5;
+                            player.position.x =this.px;                                       
+                        })
+                        .onComplete(function() {
+                            playerPosition.x +=buildDistance;
+                            mainmeshPosition1= new THREE.Vector3(0,0,0);
+                            mainmeshPosition1.x =mainmeshPosition2.x+buildDistance;
+                            mainmeshPosition1.z =mainmeshPosition2.z;
+                            mainmeshPosition2.x =mainmeshPosition3.x+buildDistance;
+                            mainmeshPosition2.z =mainmeshPosition3.z;
+                            mainmeshPosition3.x =mainmeshPosition4.x+buildDistance;
+                            mainmeshPosition3.z =mainmeshPosition4.z;
+                            mainmeshPosition4.x =mainmeshPosition5.x+buildDistance;
+                            mainmeshPosition4.z =mainmeshPosition5.z;
+                            mainmesh1 = mainmesh2;
+                            mainmesh2 = mainmesh3;
+                            mainmesh3 = mainmesh4;
+                            mainmesh4 = mainmesh5;
+                            createBox();
+                            // console.log(mainmeshPosition1,mainmeshPosition2,mainmeshPosition3,mainmeshPosition4,mainmeshPosition5);
+                        })
+                        .start();
+            }
+        }
+    }
+
+    function createBox() {  
+        var boxCount = 28;
+        var boxNum = Math.floor(Math.random()*boxCount); //0~boxCount-1
+        direction = Math.floor(Math.random()*2); //0~boxCount-1
+        buildDistance = 100+(1+Math.floor(Math.random()*7))*20; //140~380
+        if (direction == 1){
+            switch(boxNum)
+            {
+                case 0:mainmesh5 = creatcube10(0,-buildDistance);break;
+                case 1:mainmesh5 = creatcube11(0,-buildDistance);break;
+                case 2:mainmesh5 = creatcube12(0,-buildDistance);break;
+                case 3:mainmesh5 = creatcube13(0,-buildDistance);break;
+                case 4:mainmesh5 = creatcube14(0,-buildDistance);break;
+                case 5:mainmesh5 = creatcube15(0,-buildDistance);break;
+                case 6:mainmesh5 = creatcube16(0,-buildDistance);break;
+                case 7:mainmesh5 = creatcube17(0,-buildDistance);break;
+                case 8:mainmesh5 = creatcube18(0,-buildDistance);break;
+                case 9:mainmesh5 = creatcube21(0,-buildDistance);break;
+                case 10:mainmesh5 = creatcube22(0,-buildDistance);break;
+                case 11:mainmesh5 = creatcube23(0,-buildDistance);break;
+                case 12:mainmesh5 = creatcube24(0,-buildDistance);break;
+                case 13:mainmesh5 = creatcube25(0,-buildDistance);break;
+                case 14:mainmesh5 = creatcube26(0,-buildDistance);break;
+                case 15:mainmesh5 = creatcube27(0,-buildDistance);break;
+                case 16:mainmesh5 = creatcube01(0,-buildDistance);break;
+                case 17:mainmesh5 = creatcube02(0,-buildDistance);break;
+                case 18:mainmesh5 = creatcube03(0,-buildDistance);break;
+                case 19:mainmesh5 = creatcube04(0,-buildDistance);break;
+                case 20:mainmesh5 = creatcube05(0,-buildDistance);break;
+                case 21:mainmesh5 = creatcube06(0,-buildDistance);break;
+                case 22:mainmesh5 = creatcube07(0,-buildDistance);break;
+                case 23:mainmesh5 = creatdesk(0,-buildDistance);break;
+                case 24:mainmesh5 = creatdesk2(0,-buildDistance);break;
+                case 25:mainmesh5 = creatcylinder(0,-buildDistance);break;
+                case 26:mainmesh5 = creatcylinder2(0,-buildDistance);break;
+                case 27:mainmesh5 = creatcup(0,-buildDistance);break;
+            } 
+            mainmesh5.position.set(0,100,0);
+            mainmeshPosition5.z = 0;
+            new TWEEN.Tween(mainmesh5.position)
+                            .to({
+                                y: 0,
+                            },500)
+                            .easing(TWEEN.Easing.Bounce.Out) 
+                            .start();
+        }
+        else {
+            switch(boxNum)
+            {
+                case 0:mainmesh5 = creatcube10(-buildDistance,0);break;
+                case 1:mainmesh5 = creatcube11(-buildDistance,0);break;
+                case 2:mainmesh5 = creatcube12(-buildDistance,0);break;
+                case 3:mainmesh5 = creatcube13(-buildDistance,0);break;
+                case 4:mainmesh5 = creatcube14(-buildDistance,0);break;
+                case 5:mainmesh5 = creatcube15(-buildDistance,0);break;
+                case 6:mainmesh5 = creatcube16(-buildDistance,0);break;
+                case 7:mainmesh5 = creatcube17(-buildDistance,0);break;
+                case 8:mainmesh5 = creatcube18(-buildDistance,0);break;
+                case 9:mainmesh5 = creatcube21(-buildDistance,0);break;
+                case 10:mainmesh5 = creatcube22(-buildDistance,0);break;
+                case 11:mainmesh5 = creatcube23(-buildDistance,0);break;
+                case 12:mainmesh5 = creatcube24(-buildDistance,0);break;
+                case 13:mainmesh5 = creatcube25(-buildDistance,0);break;
+                case 14:mainmesh5 = creatcube26(-buildDistance,0);break;
+                case 15:mainmesh5 = creatcube27(-buildDistance,0);break;
+                case 16:mainmesh5 = creatcube01(-buildDistance,0);break;
+                case 17:mainmesh5 = creatcube02(-buildDistance,0);break;
+                case 18:mainmesh5 = creatcube03(-buildDistance,0);break;
+                case 19:mainmesh5 = creatcube04(-buildDistance,0);break;
+                case 20:mainmesh5 = creatcube05(-buildDistance,0);break;
+                case 21:mainmesh5 = creatcube06(-buildDistance,0);break;
+                case 22:mainmesh5 = creatcube07(-buildDistance,0);break;
+                case 23:mainmesh5 = creatdesk(-buildDistance,0);break;
+                case 24:mainmesh5 = creatdesk2(-buildDistance,0);break;
+                case 25:mainmesh5 = creatcylinder(-buildDistance,0);break;
+                case 26:mainmesh5 = creatcylinder2(-buildDistance,0);break;
+                case 27:mainmesh5 = creatcup(-buildDistance,0);break;
+            } 
+            mainmesh5.position.set(0,100,0);
+            mainmeshPosition5.x = 0;
+            new TWEEN.Tween(mainmesh5.position)
+                            .to({
+                                y: 0,
+                            },500)
+                            .easing(TWEEN.Easing.Bounce.Out) 
+                            .start();
+        }
+    }
+
+    function gameOver(flog) {  
+        switch(flog){
+            case 0:downTween0();break;
+            case 11:downTween11();break;
+            case 21:downTween21();break;
+            case 22:downTween22();break;
+            case 12:downTween12();break;
+            case 23:downTween23();break;
+            case 24:downTween24();break;
+        }
+        function downTween0() {    
+        }
+        function downTween11() {    
+        }
+        function downTween21() {    
+        }
+        function downTween22() {    
+        }
+        function downTween12() {    
+        }
+        function downTween23() {    
+        }
+        function downTween24() {    
+        }
+        pointCount();
+
+    }
+
+    function pointCount() { 
+        document.getElementById("gameOver").style.display = "block";
+        document.getElementById("point").style.display = "none"; 
+    }
+
+    function pointGet() { 
+        if (direction == 1) {
+            if (playerPosition.z-buildDistance==0){
+                point += 2;
+            }
+            else{
+                point += 1;
+            }
+        }
+        else {
+            if (playerPosition.x-buildDistance==0){
+                point += 2;
+            }
+            else{
+                point += 1;
+            }
+        }
+        
+        // console.log(point);
+        document.getElementById("point").innerHTML=point;
+        document.getElementById("pointtotal").innerHTML=point;
+    }
+
+    function creatcubeplayer(x,y,z) {
         var geometry = new THREE.SphereGeometry(9, 30, 30);
         var texture = new THREE.TextureLoader().load( "source/head.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material );
-        mesh.position.set(x,106,z);
+        mesh.castShadow = true;
+        mesh.position.set(x,y+106,z);
+        mesh.castShadow = true;
         mesh.rotation.y =  Math.PI / 2;
 
-        geometry = new THREE.SphereGeometry(11.5, 30, 30, 0, Math.PI * 2, 0, Math.PI / 3);
-        texture = new THREE.TextureLoader().load( "source/head1.png" );
-        material = new THREE.MeshLambertMaterial({map:texture});
-        mesh3 = new THREE.Mesh( geometry,material );
-        mesh3.position.set(x,78,z);
+        var geometry3 = new THREE.SphereGeometry(11.5, 30, 30, 0, Math.PI * 2, 0, Math.PI / 3);
+        var texture3 = new THREE.TextureLoader().load( "source/head1.png" );
+        var material3 = new THREE.MeshLambertMaterial({map:texture3});
+        mesh3 = new THREE.Mesh( geometry3,material3 );
+        mesh3.castShadow = true;
+        mesh3.position.set(x,y+78,z);
+        mesh3.castShadow = true;
         mesh3.rotation.y =  Math.PI*7 / 10;
 
-        geometry = new THREE.CylinderGeometry(10, 9, 8, 30);
-        texture = new THREE.TextureLoader().load( "source/top.png" );
-        material = new THREE.MeshLambertMaterial({map:texture});
-        mesh1 = new THREE.Mesh(geometry,material );
-        mesh1.position.set(x,80,z);
+        var geometry1 = new THREE.CylinderGeometry(10, 9, 8, 30);
+        var texture1 = new THREE.TextureLoader().load( "source/top.png" );
+        var material1 = new THREE.MeshLambertMaterial({map:texture1});
+        mesh1 = new THREE.Mesh(geometry1,material1 );
+        mesh1.castShadow = true;
+        mesh1.position.set(x,y+80,z);
+        mesh1.castShadow = true;
         mesh1.rotation.y = - Math.PI / 4;
 
-        geometry = new THREE.CylinderGeometry(9, 12, 26, 30);
-        texture = new THREE.TextureLoader().load( "source/bottom.png" );
-        material = new THREE.MeshLambertMaterial({map:texture});
-        mesh2 = new THREE.Mesh(geometry,material );
-        mesh2.position.set(x,63,z);
+        var geometry2 = new THREE.CylinderGeometry(9, 12, 26, 30);
+        var texture2 = new THREE.TextureLoader().load( "source/bottom.png" );
+        var material2 = new THREE.MeshLambertMaterial({map:texture2});
+        mesh2 = new THREE.Mesh(geometry2,material2 );
+        mesh2.castShadow = true;
+        mesh2.position.set(x,y+63,z);
+        mesh2.castShadow = true;
         mesh2.rotation.y = - Math.PI / 3;
 
+        body = new THREE.Object3D();
+        body.add(mesh1,mesh2,mesh3);
+
         group = new THREE.Object3D();
-        group.add(mesh,mesh1,mesh2,mesh3);
-        scene.add(group);
+        group.add(mesh,body);
         return group;
+    }
+
+    function creatGround(x,z,color){
+        var geometry = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
+        var material = new THREE.MeshLambertMaterial({ color:color});
+        mesh = new THREE.Mesh( geometry,material );
+        mesh.receiveShadow = true;
+        mesh.rotation.x =  -Math.PI / 2;
+        mesh.position.set(x,-0.01,z);
+        scene.add(mesh);
+        return mesh;
     }
 
     function creatcube10(x,z) {
@@ -244,11 +1004,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xf64850} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 32,32 );
         var texture = new THREE.TextureLoader().load( "source/money.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
         mesh2.rotation.y =  Math.PI / 2;
         mesh2.position.set(x+50.01,25,z);
         Shadow =  makeShadow(x,z);
@@ -268,6 +1030,7 @@
         var texture = new THREE.TextureLoader().load( "source/bag.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
@@ -285,18 +1048,21 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0x64a934} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         geometry = new THREE.PlaneGeometry( 100,50 );
         var texture = new THREE.TextureLoader().load( "source/green_face.png" );
         material = new THREE.MeshLambertMaterial({map:texture});
         material.transparent = true;
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.rotation.y =  Math.PI / 2;
         mesh2.position.set(x+50.01,25,z);
 
         geometry = new THREE.CubeGeometry( 40, 30, 15);
         material = new THREE.MeshLambertMaterial( { color:0x64a934} );
         var mesh3 = new THREE.Mesh( geometry,material);
+        mesh3.receiveShadow = true;
         mesh3.position.set(x+22,31,z+58);
         mesh3.rotation.x = - Math.PI / 4;
         var mesh4 = mesh3.clone();
@@ -313,11 +1079,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xd4c836} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
 
         geometry = new THREE.CylinderGeometry(20, 20, 10, 30, 3, true);
         material = new THREE.MeshLambertMaterial({ color:0xd4c836});
         mesh1 = new THREE.Mesh(geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z+55);
         mesh1.rotation.x =  -Math.PI / 2;
         var geometry = new THREE.PlaneGeometry( 20, 20 );
@@ -325,6 +1093,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         material.transparent = true;
         var mesh3 = new THREE.Mesh( geometry, material );
+        mesh3.receiveShadow = true;
         mesh3.position.set(x,25,z+55.01);
 
         mesh2 = mesh1.clone();
@@ -344,11 +1113,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xffffff} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100, 50, 1, 1 );
         var texture = new THREE.TextureLoader().load( "source/clock.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01, 25,z);
  
@@ -391,6 +1162,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             material.transparent = true;
             mesh6 = new THREE.Mesh( geometry, material);
+            mesh6.receiveShadow = true;
             mesh6.rotation.y =  Math.PI / 2;
             mesh6.position.set(x+50.02, 25, z+d);
             return mesh6;
@@ -403,6 +1175,7 @@
         texture.repeat.set( 2, 2 );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh7 = new THREE.Mesh(geometry,material);
+        mesh7.receiveShadow = true;
         mesh7.position.set(x,25,z+55);
         mesh7.rotation.x =  -Math.PI / 2;
         var geometry = new THREE.CircleGeometry( 20, 30 );
@@ -412,6 +1185,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         material.transparent = true;
         var mesh8 = new THREE.Mesh( geometry, material );
+        mesh8.receiveShadow = true;
         mesh8.position.set(x,25,z+60);
         Shadow =  makeShadow(x,z);
         group = new THREE.Object3D();
@@ -424,12 +1198,14 @@
         var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh = new THREE.Mesh(geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var texture = new THREE.TextureLoader().load( "source/record.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         // texture.needsUpdate = true;
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,46,z);
         mesh1.rotation.x =  -Math.PI / 2;
 
@@ -443,6 +1219,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.rotation.x =  -Math.PI / 2;
         mesh2.position.set(x,44,z);
         var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
@@ -454,6 +1231,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.receiveShadow = true;
         mesh3.position.set(x,44/2,z+50);
         var geometry = new THREE.PlaneGeometry( 100, 44, 1, 1 );
         geometry.faceVertexUvs[0] = [];
@@ -464,6 +1242,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture}); 
         mesh4 = new THREE.Mesh( geometry,material );
+        mesh4.receiveShadow = true;
         mesh4.rotation.y =  Math.PI / 2;
         mesh4.position.set(x+50,44/2,z);
         Shadow =  makeShadow(x,z);
@@ -477,18 +1256,21 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 66,33 );
         var texture = new THREE.TextureLoader().load( "source/white_face.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         material.transparent = true;
         mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01,20,z);
 
         var geometry = new THREE.CubeGeometry( 40, 30, 15);
         var material = new THREE.MeshLambertMaterial( { color:0xf2f2f2} );
         var mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
         mesh2.position.set(x+22,30,z+58);
         mesh2.rotation.x = - Math.PI / 4;
         var mesh3 = mesh2.clone();
@@ -505,6 +1287,7 @@
         var geometry = new THREE.CubeGeometry( 100, 40, 100);
         var material = new THREE.MeshLambertMaterial({color:0x9175cf});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,20,z);
 
         var texture = new THREE.TextureLoader().load( "source/gift.png" );
@@ -517,6 +1300,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.position.set(x,50,z);
         var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
@@ -528,6 +1312,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh2 = new THREE.Mesh( geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,42,z+55);
         var geometry = new THREE.PlaneGeometry( 110, 16, 1, 1 );
         geometry.faceVertexUvs[0] = [];
@@ -538,6 +1323,7 @@
         geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
         var materialRight = new THREE.MeshLambertMaterial({map:texture}); 
         mesh3 = new THREE.Mesh( geometry,material );
+        mesh3.receiveShadow = true;
         mesh3.rotation.y =  Math.PI / 2;
         mesh3.position.set(x+55,42,z);
         Shadow =  makeShadow(x,z);
@@ -552,11 +1338,13 @@
         var texture = new THREE.TextureLoader().load( "source/stool.png" );
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,44,z);
 
         var geometry = new THREE.CubeGeometry( 14, 48, 14);
         var material = new THREE.MeshLambertMaterial({map:texture});
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x-34,18,z+34);
         mesh1.rotation.x = - Math.PI / 20;
         mesh1.rotation.z = - Math.PI / 40;
@@ -582,11 +1370,13 @@
         var geometry = new THREE.CubeGeometry( 120, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:0x8e8e8e} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100, 120 );
         var texture = new THREE.TextureLoader().load( "source/disk.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,50.01,z);
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.rotation.z =  Math.PI / 2;
@@ -602,10 +1392,12 @@
         var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
         var material = new THREE.MeshLambertMaterial({ color:0xafafaf});
         var mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,47,z);
         var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
@@ -618,10 +1410,12 @@
         var geometry = new THREE.CylinderGeometry(50, 50, 6, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x686868});
         mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,47,z);
         var geometry = new THREE.CylinderGeometry(10, 30, 49, 30);
         var material = new THREE.MeshLambertMaterial({ color:0x979797});
         mesh1 = new THREE.Mesh(geometry,material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,25,z);
         Shadow =  makeShadow_desk(x,z);
         group = new THREE.Object3D();
@@ -644,12 +1438,14 @@
         var geometry = new THREE.CylinderGeometry(30, 36, 10, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:0x464646});
         mesh = new THREE.Mesh(geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,45,z);
         var geometry = new THREE.CircleGeometry( 30, 30 );
         var texture = new THREE.TextureLoader().load( "source/westore_desk.png" );
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         // texture.needsUpdate = true;
         var mesh1 = new THREE.Mesh( geometry, material );
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,50,z);
         mesh1.rotation.x =  -Math.PI / 2;
         mesh1.rotation.z =  Math.PI / 4;
@@ -658,6 +1454,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
         mesh2 = new THREE.Mesh(geometry,material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,20,z);
         mesh2.rotation.y =  -3* Math.PI / 4;
         Shadow =  makeShadow_cup(x,z);
@@ -667,20 +1464,11 @@
         return group;
     }
 
-    function creatGround(x,z,color){
-        var geometry = new THREE.PlaneGeometry( 5000, 5000, 1, 1 );
-        var material = new THREE.MeshLambertMaterial({ color:color});
-        mesh = new THREE.Mesh( geometry,material );
-        mesh.rotation.x =  -Math.PI / 2;
-        mesh.position.set(x,-0.01,z);
-        scene.add(mesh);
-        return mesh;
-    }
-
     function topPlane_color(x,z,topcolor){
         var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
         var material = new THREE.MeshLambertMaterial({ color:topcolor});
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.rotation.x =  -Math.PI / 2;
         mesh.position.set(x,50,z);
         return mesh;
@@ -762,11 +1550,13 @@
         var geometry = new THREE.CubeGeometry( 100, 50, 100);
         var material = new THREE.MeshLambertMaterial( { color:color} );
         mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
         mesh.position.set(x,25,z);
         var geometry = new THREE.PlaneGeometry( 100,50 );
         var material = new THREE.MeshLambertMaterial({map:texture});
         texture.needsUpdate = true;
         mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.rotation.y =  Math.PI / 2;
         mesh1.position.set(x+50.01,25,z);
         Shadow =  makeShadow();
@@ -783,6 +1573,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
             mesh1 = new THREE.Mesh( geometry,material);
+            mesh1.receiveShadow = true;
             mesh1.position.set(x,25,z+50);
             var mesh2 = mesh1.clone();
             mesh2.rotation.y =  Math.PI / 2;
@@ -817,6 +1608,7 @@
             var material = new THREE.MeshLambertMaterial({map:texture});
             texture.needsUpdate = true;
             mesh1 = new THREE.Mesh( geometry,material );
+            mesh1.receiveShadow = true;
             mesh1.position.set(x,25,z+50);
             var mesh2 = mesh1.clone();
             mesh2.rotation.y =  Math.PI / 2;
@@ -869,10 +1661,12 @@
         var geometry = new THREE.CylinderGeometry(40, 40, 44, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:color2});
         mesh = new THREE.Mesh(geometry,material );
+        mesh.receiveShadow = true;
         mesh.position.set(x,22,z);
         var geometry = new THREE.CylinderGeometry(40, 40, 6, 30, 3, true);
         var material = new THREE.MeshLambertMaterial({ color:color});
         mesh1 = new THREE.Mesh(geometry,material);
+        mesh1.receiveShadow = true;
         mesh1.position.set(x,47,z);
         var geometry = new THREE.CircleGeometry( 40, 30 );
         var canvas = document.createElement('canvas');
@@ -895,6 +1689,7 @@
         var material = new THREE.MeshBasicMaterial( {map:texture} );
         texture.needsUpdate = true;
         var mesh2 = new THREE.Mesh( geometry, material );
+        mesh2.receiveShadow = true;
         mesh2.position.set(x,50,z);
         mesh2.rotation.x =  -Math.PI / 2;
         Shadow =  makeShadow_cylinder(x,z);
@@ -905,61 +1700,83 @@
     }
 
     function allPicThreeFace(x,z,picture,h) {
-            var texture = new THREE.TextureLoader().load( picture );
-            var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
-            geometry.faceVertexUvs[0] = [];
-            var t1 = new THREE.Vector2(0,0.34);//图片左下角
-            var t2 = new THREE.Vector2(0.66,0.34);//图片右下角
-            var t3 = new THREE.Vector2(0.66,1);//图片右上角
-            var t0 = new THREE.Vector2(0,1);//图片左上角
-            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
-            var material = new THREE.MeshLambertMaterial({map:texture});
-            mesh = new THREE.Mesh( geometry,material);
-            mesh.rotation.x =  -Math.PI / 2;
-            mesh.position.set(x,h,z);
-            var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
-            geometry.faceVertexUvs[0] = [];
-            var t1 = new THREE.Vector2(0,0);
-            var t2 = new THREE.Vector2(0.65,0);
-            var t3 = new THREE.Vector2(0.65,0.333);
-            var t0 = new THREE.Vector2(0,0.333);
-            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
-            var material = new THREE.MeshLambertMaterial({map:texture});
-            mesh1 = new THREE.Mesh( geometry,material);
-            mesh1.position.set(x,h/2,z+50);
-            var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
-            geometry.faceVertexUvs[0] = [];
-            var t1 = new THREE.Vector2(1,0.36);
-            var t2 = new THREE.Vector2(1,1);
-            var t3 = new THREE.Vector2(0.666,1);
-            var t0 = new THREE.Vector2(0.666,0.36);
-            geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
-            var material = new THREE.MeshLambertMaterial({map:texture}); 
-            mesh2 = new THREE.Mesh( geometry,material);
-            mesh2.rotation.y =  Math.PI / 2;
-            mesh2.position.set(x+50,h/2,z);
-            Shadow =  makeShadow();
-            Shadow.position.set( x-30 , 0 , z+8 );
-            group = new THREE.Object3D();
-            group.add(mesh, mesh1, mesh2,Shadow);
-            scene.add(group);
-            return group;  
+        var texture = new THREE.TextureLoader().load( picture );
+        var geometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0.34);
+        var t2 = new THREE.Vector2(0.66,0.34);
+        var t3 = new THREE.Vector2(0.66,1);
+        var t0 = new THREE.Vector2(0,1);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh = new THREE.Mesh( geometry,material);
+        mesh.receiveShadow = true;
+        mesh.rotation.x =  -Math.PI / 2;
+        mesh.position.set(x,h,z);
+        var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(0,0);
+        var t2 = new THREE.Vector2(0.65,0);
+        var t3 = new THREE.Vector2(0.65,0.333);
+        var t0 = new THREE.Vector2(0,0.333);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture});
+        mesh1 = new THREE.Mesh( geometry,material);
+        mesh1.receiveShadow = true;
+        mesh1.position.set(x,h/2,z+50);
+        var geometry = new THREE.PlaneGeometry( 100, h, 1, 1 );
+        geometry.faceVertexUvs[0] = [];
+        var t1 = new THREE.Vector2(1,0.36);
+        var t2 = new THREE.Vector2(1,1);
+        var t3 = new THREE.Vector2(0.666,1);
+        var t0 = new THREE.Vector2(0.666,0.36);
+        geometry.faceVertexUvs[0].push([t0,t1,t3],[t1,t2,t3]);
+        var material = new THREE.MeshLambertMaterial({map:texture}); 
+        mesh2 = new THREE.Mesh( geometry,material);
+        mesh2.receiveShadow = true;
+        mesh2.rotation.y =  Math.PI / 2;
+        mesh2.position.set(x+50,h/2,z);
+        Shadow =  makeShadow();
+        Shadow.position.set( x-30 , 0 , z+8 );
+        group = new THREE.Object3D();
+        group.add(mesh, mesh1, mesh2,Shadow);
+        scene.add(group);
+        return group;  
+    }
+
+    function deleteGroup(group) {
+        var children = group.children;
+            for(var i = 0; i< children.length; i++){
+                if (children[i] instanceof THREE.Mesh) {
+                    children[i].geometry.dispose(); 
+                    children[i].material.dispose(); 
+                }
+                else {
+                    children[i].traverse(function (item) {
+                        if (item instanceof THREE.Mesh) {
+                            item.geometry.dispose(); 
+                            item.material.dispose(); 
+                        }
+                    });
+                }
+            }
+        scene.remove(group);
     }
 
     function onWindowResize() {
-        width = document.body.clientWidth;
-        height = document.body.clientHeight;
+        width = document.getElementById('canvas-frame').clientWidth;
+        // height = document.getElementById('canvas-frame').clientHeight;
         camera.left = width / - 2;
-        camera.right = width /  2;
-        camera.top = height / 2;
-        camera.bottom = height /  -2;
+        camera.right = width /  2
         camera.updateProjectionMatrix();
         renderer.setSize( width,height );
     }
 
     function animate() {
         requestAnimationFrame( animate );
-        controls.update();
+        stats.update();
+        TWEEN.update();
+        // controls.update();
         render();
     }
 
@@ -967,8 +1784,25 @@
     renderer.render( scene, camera );
     }
 
+    function replay() {
+        location.reload(); 
+    }
 
 </script>
-<div id="info">跳一跳</div>
+
+<body onload="threeStart();">
+<div id="canvas-frame" ></div>
+<div id="point" > 0 </div>
+<div id="gameOver" >
+    <p style="font-size:20px; margin-top:100px;font-weight: 200; ">本次得分</p>
+    <p style="font-size:80px; margin-top:20px; font-family: numjump;" id= "pointtotal" >0</p>
+    <img style="margin-top:80px;width:250px;height:100px;" src="source/replay.png"  onclick="replay();">
+</div>
+<div style="margin-left:30px;" >
+<h1 style="font-size: 40px; font-family:Microsoft YaHei"> YOU JUMP I JUMP</h1>
+<p id="auth" style="margin-top:30px; font-family:Microsoft YaHei"> author:  zhoujie <1601584358@qq.com> </p>
+<p style="font-family:Microsoft YaHei"> Github: <a style="color:black;text-decoration:none;" href="https://github.com/zj19941113/You_Jump_I_Jump" target="_blank" >https://github.com/zj19941113/You_Jump_I_Jump</a></p>
+</div>
 </body>
 </html>
+
